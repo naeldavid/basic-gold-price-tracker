@@ -9,7 +9,7 @@ class GoldTracker {
     init() {
         this.fetchGoldPrice();
         this.displayHistory();
-        setInterval(() => this.fetchGoldPrice(), 30);
+        setInterval(() => this.fetchGoldPrice(), 10000);
     }
 
     async fetchGoldPrice() {
