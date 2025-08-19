@@ -25,28 +25,32 @@ class GoldTracker {
 
     async fetchGoldPrice() {
         try {
-            const response = await fetch('https://api.coindesk.com/v1/bpi/currentprice.json');
+            // Use a working gold price API
+            const response = await fetch('https://api.metals.live/v1/spot/gold');
             const data = await response.json();
             
             this.previousPrice = this.currentPrice;
-            this.currentPrice = parseFloat(data.bpi.USD.rate.replace(',', '')) * 0.05;
+            this.currentPrice = data.price;
             
             this.updateDisplay();
             this.saveToHistory();
             
         } catch (error) {
             console.error('Error fetching gold price:', error);
+            // Fallback to simulation with realistic prices
             this.simulatePrice();
         }
     }
 
     simulatePrice() {
-        const basePrice = 2000;
-        const variation = (Math.random() - 0.5) * 50;
+        // More realistic gold price simulation
+        const basePrice = 2650; // Current approximate gold price
+        const variation = (Math.random() - 0.5) * 20;
         this.previousPrice = this.currentPrice;
-        this.currentPrice = basePrice + variation;
+        this.currentPrice = Math.max(1800, basePrice + variation);
         this.updateDisplay();
         this.saveToHistory();
+        console.log('Using simulated price:', this.currentPrice);
     }
 
     updateDisplay() {
