@@ -3,6 +3,8 @@ class GoldTracker {
         this.currentPrice = 0;
         this.previousPrice = 0;
         this.priceHistory = JSON.parse(localStorage.getItem('goldPriceHistory')) || [];
+        this.chart = null;
+        this.razanMode = false;
         this.init();
     }
 
@@ -91,6 +93,53 @@ class GoldTracker {
                 </span>
             </div>
         `).join('');
+        
+        if (this.razanMode) this.updateChart();
+    }
+
+    initChart() {
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Gold Price',
+                    data: [],
+                    borderColor: '#ffd700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    }
+
+    updateChart() {
+        if (!this.chart) return;
+        const recent = this.priceHistory.slice(0, 20).reverse();
+        this.chart.data.labels = recent.map(item => item.timestamp.split(' ')[1]);
+        this.chart.data.datasets[0].data = recent.map(item => item.price);
+        this.chart.update();
+        this.updateAdvancedStats();
+    }
+
+    updateAdvancedStats() {
+        const prices = this.priceHistory.slice(0, 24).map(item => item.price);
+        if (prices.length === 0) return;
+        
+        const high = Math.max(...prices);
+        const low = Math.min(...prices);
+        const volatility = ((high - low) / low * 100).toFixed(2);
+        
+        document.getElementById('dayHigh').textContent = `$${high.toFixed(2)}`;
+        document.getElementById('dayLow').textContent = `$${low.toFixed(2)}`;
+        document.getElementById('volatility').textContent = `${volatility}%`;
     }
 
     clearHistory() {
@@ -113,6 +162,19 @@ function toggleHistory() {
 function clearHistory() {
     if (confirm('Are you sure you want to clear all price history?')) {
         goldTracker.clearHistory();
+    }
+}
+
+function toggleRazanMode() {
+    const razanMode = document.getElementById('razanMode');
+    goldTracker.razanMode = !goldTracker.razanMode;
+    
+    if (goldTracker.razanMode) {
+        razanMode.style.display = 'block';
+        if (!goldTracker.chart) goldTracker.initChart();
+        goldTracker.updateChart();
+    } else {
+        razanMode.style.display = 'none';
     }
 }
 

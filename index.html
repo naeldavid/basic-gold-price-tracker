@@ -27,8 +27,31 @@
             <h3>Price History :</h3>
             <div id="historyList"></div>
         </div>
+        <div class="razan-mode" id="razanMode" style="display: none;">
+            <h2>🚀 Razan Mode - Advanced Analytics</h2>
+            <div class="chart-container">
+                <canvas id="priceChart" width="800" height="400"></canvas>
+            </div>
+            <div class="advanced-stats">
+                <div class="stat-card">
+                    <h4>24h High</h4>
+                    <span id="dayHigh">$0.00</span>
+                </div>
+                <div class="stat-card">
+                    <h4>24h Low</h4>
+                    <span id="dayLow">$0.00</span>
+                </div>
+                <div class="stat-card">
+                    <h4>Volatility</h4>
+                    <span id="volatility">0%</span>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <div class="razan-btn" onclick="toggleRazanMode()">R</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="static/script.js"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
-
 body {
     font-family: 'Quicksand';
     
@@ -65,4 +64,62 @@ button {
 .loading {
     text-align: center;
     color: #666;
+}
+.razan-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+}
+.razan-btn:hover { opacity: 1; }
+
+.razan-mode {
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+}
+
+.chart-container {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.advanced-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.stat-card span {
+    font-size: 1.5em;
+    font-weight: bold;
 }
