@@ -6,12 +6,12 @@ A minimal, real-time gold price tracking application with advanced analytics.
 - Real-time gold price updates (5-minute intervals)
 - Price history tracking
 - Price alerts at $1800 threshold
-- **Razan Mode**: Advanced charts and analytics
+- **Advanced Mode**: Advanced charts and analytics
 - Mobile responsive design
 - Keyboard shortcuts
 
 ## Keyboard Shortcuts
-- `R` - Toggle Razan Mode
+- `R` - Toggle Advanced Mode
 - `Space` - Refresh Price
 - `H` - Toggle History
 

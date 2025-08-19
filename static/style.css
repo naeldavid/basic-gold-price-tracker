@@ -93,9 +93,7 @@ button {
     transition: opacity 0.3s;
     z-index: 1000;
 }
-.razan-btn:hover { opacity: 1; }
-
-.razan-mode {
+.advanced-mode {
     margin-top: 30px;
     padding: 20px;
     background: rgba(255, 255, 255, 0.1);
