@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Quicksand';
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
