@@ -2,16 +2,17 @@
 
 body {
     font-family: 'Quicksand';
+    
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #ffffff;
+    background-color: #000000;
 }
 .container {
     background: rgb(49, 49, 49);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
 }
 .price-display {
     text-align: center;
