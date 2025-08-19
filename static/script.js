@@ -25,9 +25,9 @@ class GoldTracker {
 
     async fetchGoldPrice() {
         try {
-            // Use a working gold price API
-            const response = await fetch('https://api.metals.live/v1/spot/gold');
-            const data = await response.json();
+            // Use CORS proxy for real gold prices
+            const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.metals.live/v1/spot/gold'));
+            const data = JSON.parse((await response.json()).contents);
             
             this.previousPrice = this.currentPrice;
             this.currentPrice = data.price;
@@ -36,9 +36,19 @@ class GoldTracker {
             this.saveToHistory();
             
         } catch (error) {
-            console.error('Error fetching gold price:', error);
-            // Fallback to simulation with realistic prices
-            this.simulatePrice();
+            console.error('Error fetching real gold price:', error);
+            // Try alternative real API
+            try {
+                const altResponse = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.goldapi.io/api/XAU/USD'));
+                const altData = JSON.parse((await altResponse.json()).contents);
+                this.previousPrice = this.currentPrice;
+                this.currentPrice = altData.price;
+                this.updateDisplay();
+                this.saveToHistory();
+                if (typeof triggerCoinRain === 'function') triggerCoinRain();
+            } catch {
+                console.error('All real APIs failed');
+            }
         }
     }
 
