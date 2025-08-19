@@ -13,7 +13,11 @@ class GoldTracker {
         this.fetchGoldPrice();
         this.displayHistory();
         if (this.razanMode) {
-            document.getElementById('razanMode').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('razanMode').style.display = 'block';
+                this.initChart();
+                this.updateChart();
+            }, 100);
         }
         setInterval(() => this.fetchGoldPrice(), 300000);
         this.setupKeyboardShortcuts();
@@ -130,9 +134,9 @@ class GoldTracker {
     updateChart() {
         if (!this.chart) return;
         const recent = this.priceHistory.slice(0, 20).reverse();
-        this.chart.data.labels = recent.map(item => item.timestamp.split(' ')[1]);
+        this.chart.data.labels = recent.map(item => item.timestamp.split(' ')[1] || item.timestamp);
         this.chart.data.datasets[0].data = recent.map(item => item.price);
-        this.chart.update();
+        this.chart.update('none');
         this.updateAdvancedStats();
     }
 
@@ -153,7 +157,7 @@ class GoldTracker {
         if (this.currentPrice <= 1800 && !this.alertTriggered) {
             this.alertTriggered = true;
             this.showAlert('🚨 PRICE ALERT: Gold dropped to $1800!');
-            if ('Notification' in window) {
+            if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Gold Price Alert', {
                     body: `Gold price dropped to $${this.currentPrice.toFixed(2)}`,
                     icon: 'static/favicon.ico'
