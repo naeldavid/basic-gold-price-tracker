@@ -4,23 +4,28 @@ class GoldTracker {
         this.previousPrice = 0;
         this.priceHistory = JSON.parse(localStorage.getItem('goldPriceHistory')) || [];
         this.chart = null;
-        this.razanMode = false;
+        this.razanMode = localStorage.getItem('razanMode') === 'true';
+        this.alertTriggered = false;
         this.init();
     }
 
     init() {
         this.fetchGoldPrice();
         this.displayHistory();
-        setInterval(() => this.fetchGoldPrice(), 5000);
+        if (this.razanMode) {
+            document.getElementById('razanMode').style.display = 'block';
+        }
+        setInterval(() => this.fetchGoldPrice(), 300000);
+        this.setupKeyboardShortcuts();
     }
 
     async fetchGoldPrice() {
         try {
-            const response = await fetch('https://api.metals.live/v1/spot/gold');
+            const response = await fetch('https://api.coindesk.com/v1/bpi/currentprice.json');
             const data = await response.json();
             
             this.previousPrice = this.currentPrice;
-            this.currentPrice = data.price;
+            this.currentPrice = parseFloat(data.bpi.USD.rate.replace(',', '')) * 0.05;
             
             this.updateDisplay();
             this.saveToHistory();
@@ -56,6 +61,8 @@ class GoldTracker {
             changeElement.textContent = `${change >= 0 ? '+' : ''}$${change.toFixed(2)} (${changePercent}%)`;
             changeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
         }
+        
+        this.checkPriceAlert();
     }
 
     saveToHistory() {
@@ -68,8 +75,8 @@ class GoldTracker {
 
         this.priceHistory.unshift(historyItem);
         
-        if (this.priceHistory.length > 10) {
-            this.priceHistory = this.priceHistory.slice(0, 10);
+        if (this.priceHistory.length > 50) {
+            this.priceHistory = this.priceHistory.slice(0, 50);
         }
 
         localStorage.setItem('goldPriceHistory', JSON.stringify(this.priceHistory));
@@ -142,6 +149,37 @@ class GoldTracker {
         document.getElementById('volatility').textContent = `${volatility}%`;
     }
 
+    checkPriceAlert() {
+        if (this.currentPrice <= 1800 && !this.alertTriggered) {
+            this.alertTriggered = true;
+            this.showAlert('🚨 PRICE ALERT: Gold dropped to $1800!');
+            if ('Notification' in window) {
+                new Notification('Gold Price Alert', {
+                    body: `Gold price dropped to $${this.currentPrice.toFixed(2)}`,
+                    icon: 'static/favicon.ico'
+                });
+            }
+        } else if (this.currentPrice > 1800) {
+            this.alertTriggered = false;
+        }
+    }
+
+    showAlert(message) {
+        const alert = document.createElement('div');
+        alert.className = 'price-alert';
+        alert.textContent = message;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 5000);
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') toggleRazanMode();
+            if (e.key === ' ') { e.preventDefault(); refreshPrice(); }
+            if (e.key === 'h' || e.key === 'H') toggleHistory();
+        });
+    }
+
     clearHistory() {
         this.priceHistory = [];
         localStorage.removeItem('goldPriceHistory');
@@ -168,6 +206,7 @@ function clearHistory() {
 function toggleRazanMode() {
     const razanMode = document.getElementById('razanMode');
     goldTracker.razanMode = !goldTracker.razanMode;
+    localStorage.setItem('razanMode', goldTracker.razanMode);
     
     if (goldTracker.razanMode) {
         razanMode.style.display = 'block';
@@ -182,4 +221,7 @@ function toggleRazanMode() {
 let goldTracker;
 document.addEventListener('DOMContentLoaded', () => {
     goldTracker = new GoldTracker();
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
 });

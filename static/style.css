@@ -1,11 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 body {
     font-family: 'Quicksand';
-    
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     background-color: #000000;
+}
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .container { padding: 15px; }
+    .current-price { font-size: 2em; }
+    .controls { justify-content: center; }
+    button { flex: 1; min-width: 120px; }
+    .advanced-stats { grid-template-columns: 1fr; }
+    .razan-btn { bottom: 15px; right: 15px; }
 }
 .container {
     background: rgb(49, 49, 49);
@@ -60,6 +69,7 @@ button {
     justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid #eee;
+    color: white;
 }
 .loading {
     text-align: center;
@@ -71,7 +81,7 @@ button {
     right: 20px;
     width: 40px;
     height: 40px;
-    background: linear-gradient(45deg, #000000, #ffffff);
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -81,6 +91,7 @@ button {
     cursor: pointer;
     opacity: 0.3;
     transition: opacity 0.3s;
+    z-index: 1000;
 }
 .razan-btn:hover { opacity: 1; }
 
@@ -122,4 +133,24 @@ button {
 .stat-card span {
     font-size: 1.5em;
     font-weight: bold;
+}
+
+.price-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #ff4757, #ff3838);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    z-index: 1001;
+    animation: alertPulse 0.5s ease-in-out;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+}
+
+@keyframes alertPulse {
+    0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
