@@ -2,74 +2,93 @@ class GoldTracker {
     constructor() {
         this.currentPrice = 0;
         this.previousPrice = 0;
-        this.priceHistory = JSON.parse(localStorage.getItem('goldPriceHistory')) || [];
+        this.api = new GoldAPI();
+        this.storage = new DataStorage();
+        this.analytics = new Analytics();
+        this.alerts = new AlertSystem();
+        this.themes = new ThemeManager();
+        
+        this.priceHistory = this.storage.loadHistory();
+        this.settings = this.storage.loadSettings();
         this.chart = null;
-        this.razanMode = localStorage.getItem('razanMode') === 'true';
-        this.alertTriggered = false;
+        this.razanMode = this.settings.razanMode;
+        this.refreshInterval = null;
+        
         this.init();
     }
 
     init() {
+        this.themes.loadTheme();
+        this.alerts.loadAlerts();
+        this.alerts.soundEnabled = this.settings.soundEnabled;
+        
         this.fetchGoldPrice();
         this.displayHistory();
+        this.setupUI();
+        this.startAutoRefresh();
+        this.setupKeyboardShortcuts();
+        
         if (this.razanMode) {
             setTimeout(() => {
                 document.getElementById('razanMode').style.display = 'block';
                 this.initChart();
-                this.updateChart();
+                this.updateAdvancedAnalytics();
             }, 100);
         }
-        setInterval(() => this.fetchGoldPrice(), 300000);
-        this.setupKeyboardShortcuts();
+    }
+
+    setupUI() {
+        // Theme selector
+        const themeSelect = document.getElementById('themeSelect');
+        this.themes.getAvailableThemes().forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme;
+            option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            if (theme === this.themes.getCurrentTheme()) option.selected = true;
+            themeSelect.appendChild(option);
+        });
+
+        // Sound setting
+        document.getElementById('soundEnabled').checked = this.settings.soundEnabled;
+        document.getElementById('soundEnabled').onchange = (e) => {
+            this.settings.soundEnabled = e.target.checked;
+            this.alerts.soundEnabled = e.target.checked;
+            this.storage.saveSettings(this.settings);
+        };
+
+        // Refresh interval
+        document.getElementById('refreshInterval').value = this.settings.refreshInterval;
+
+        this.updateAlertsList();
+        this.updatePortfolioCalculator();
     }
 
     async fetchGoldPrice() {
         try {
-            // Use CORS proxy for real gold prices
-            const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.metals.live/v1/spot/gold'));
-            const data = JSON.parse((await response.json()).contents);
-            
             this.previousPrice = this.currentPrice;
-            this.currentPrice = data.price;
+            this.currentPrice = await this.api.fetchPrice();
             
             this.updateDisplay();
             this.saveToHistory();
+            this.alerts.checkAlerts(this.currentPrice, this.previousPrice);
+            
+            if (typeof triggerCoinRain === 'function' && Math.random() < 0.1) {
+                triggerCoinRain();
+            }
             
         } catch (error) {
-            console.error('Error fetching real gold price:', error);
-            // Try alternative real API
-            try {
-                const altResponse = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.goldapi.io/api/XAU/USD'));
-                const altData = JSON.parse((await altResponse.json()).contents);
-                this.previousPrice = this.currentPrice;
-                this.currentPrice = altData.price;
-                this.updateDisplay();
-                this.saveToHistory();
-                if (typeof triggerCoinRain === 'function') triggerCoinRain();
-            } catch {
-                console.error('All real APIs failed');
-            }
+            console.error('Error fetching gold price:', error);
+            this.showAlert('⚠️ Unable to fetch current price. Using cached data.');
         }
-    }
-
-    simulatePrice() {
-        // More realistic gold price simulation
-        const basePrice = 2650; // Current approximate gold price
-        const variation = (Math.random() - 0.5) * 20;
-        this.previousPrice = this.currentPrice;
-        this.currentPrice = Math.max(1800, basePrice + variation);
-        this.updateDisplay();
-        this.saveToHistory();
-        console.log('Using simulated price:', this.currentPrice);
     }
 
     updateDisplay() {
         const priceElement = document.getElementById('currentPrice');
         const changeElement = document.getElementById('priceChange');
         const loadingElement = document.getElementById('loadingText');
+        const trendElement = document.getElementById('trendIndicator');
 
         loadingElement.style.display = 'none';
-
         priceElement.textContent = `$${this.currentPrice.toFixed(2)}`;
 
         if (this.previousPrice > 0) {
@@ -79,8 +98,38 @@ class GoldTracker {
             changeElement.textContent = `${change >= 0 ? '+' : ''}$${change.toFixed(2)} (${changePercent}%)`;
             changeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
         }
-        
-        this.checkPriceAlert();
+
+        // Update trend indicator
+        if (this.priceHistory.length > 0) {
+            const prices = this.priceHistory.slice(0, 10).map(h => h.price);
+            const trend = this.analytics.calculateTrend(prices);
+            trendElement.textContent = trend === 'bullish' ? '📈 Bullish' : trend === 'bearish' ? '📉 Bearish' : '➡️ Neutral';
+            trendElement.className = `trend-indicator trend-${trend}`;
+        }
+
+        this.updateMiniChart();
+        this.updatePortfolioCalculator();
+    }
+
+    updateMiniChart() {
+        const miniChart = document.getElementById('miniChart');
+        if (this.priceHistory.length < 2) return;
+
+        const prices = this.priceHistory.slice(0, 20).map(h => h.price);
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const range = max - min;
+
+        let path = '';
+        prices.forEach((price, i) => {
+            const x = (i / (prices.length - 1)) * 100;
+            const y = 100 - ((price - min) / range) * 100;
+            path += i === 0 ? `M${x},${y}` : ` L${x},${y}`;
+        });
+
+        miniChart.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="${path}" stroke="var(--accent-primary)" stroke-width="2" fill="none"/>
+        </svg>`;
     }
 
     saveToHistory() {
@@ -93,11 +142,11 @@ class GoldTracker {
 
         this.priceHistory.unshift(historyItem);
         
-        if (this.priceHistory.length > 50) {
-            this.priceHistory = this.priceHistory.slice(0, 50);
+        if (this.priceHistory.length > this.storage.maxHistory) {
+            this.priceHistory = this.priceHistory.slice(0, this.storage.maxHistory);
         }
 
-        localStorage.setItem('goldPriceHistory', JSON.stringify(this.priceHistory));
+        this.storage.saveHistory(this.priceHistory);
         this.displayHistory();
     }
 
@@ -109,7 +158,7 @@ class GoldTracker {
             return;
         }
 
-        historyList.innerHTML = this.priceHistory.map(item => `
+        historyList.innerHTML = this.priceHistory.slice(0, 20).map(item => `
             <div class="history-item">
                 <span>$${item.price.toFixed(2)}</span>
                 <span>${item.timestamp}</span>
@@ -119,7 +168,7 @@ class GoldTracker {
             </div>
         `).join('');
         
-        if (this.razanMode) this.updateChart();
+        if (this.razanMode) this.updateAdvancedAnalytics();
     }
 
     initChart() {
@@ -131,55 +180,124 @@ class GoldTracker {
                 datasets: [{
                     label: 'Gold Price',
                     data: [],
-                    borderColor: '#ffd700',
-                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                    borderColor: 'var(--accent-primary)',
+                    backgroundColor: 'rgba(219, 186, 0, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: '7-Day MA',
+                    data: [],
+                    borderColor: 'var(--success)',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
                     tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: { labels: { color: 'var(--text-primary)' } }
+                },
                 scales: {
-                    y: { beginAtZero: false }
+                    x: { ticks: { color: 'var(--text-secondary)' } },
+                    y: { 
+                        beginAtZero: false,
+                        ticks: { color: 'var(--text-secondary)' }
+                    }
                 }
             }
         });
     }
 
-    updateChart() {
-        if (!this.chart) return;
-        const recent = this.priceHistory.slice(0, 20).reverse();
-        this.chart.data.labels = recent.map(item => item.timestamp.split(' ')[1] || item.timestamp);
-        this.chart.data.datasets[0].data = recent.map(item => item.price);
-        this.chart.update('none');
-        this.updateAdvancedStats();
-    }
+    updateAdvancedAnalytics() {
+        if (!this.chart || this.priceHistory.length === 0) return;
 
-    updateAdvancedStats() {
-        const prices = this.priceHistory.slice(0, 24).map(item => item.price);
-        if (prices.length === 0) return;
+        const recent = this.priceHistory.slice(0, 50).reverse();
+        const prices = recent.map(item => item.price);
         
-        const high = Math.max(...prices);
-        const low = Math.min(...prices);
-        const volatility = ((high - low) / low * 100).toFixed(2);
+        // Update chart
+        this.chart.data.labels = recent.map(item => item.timestamp.split(' ')[1] || item.timestamp.split(',')[0]);
+        this.chart.data.datasets[0].data = prices;
         
+        // Calculate moving averages
+        const ma7Data = [];
+        for (let i = 6; i < prices.length; i++) {
+            ma7Data.push(this.analytics.calculateMovingAverage(prices.slice(i-6, i+1), 7));
+        }
+        this.chart.data.datasets[1].data = [null, null, null, null, null, null, ...ma7Data];
+        
+        this.chart.update('none');
+
+        // Update stats
+        const allPrices = this.priceHistory.map(h => h.price);
+        const high = Math.max(...allPrices.slice(0, 24));
+        const low = Math.min(...allPrices.slice(0, 24));
+        const volatility = this.analytics.calculateVolatility(allPrices.slice(0, 24));
+        const ma7 = this.analytics.calculateMovingAverage(allPrices, 7);
+        const ma30 = this.analytics.calculateMovingAverage(allPrices, 30);
+        const sentiment = this.analytics.getMarketSentiment(this.priceHistory);
+        const prediction = this.analytics.predictNextPrice(this.priceHistory);
+
         document.getElementById('dayHigh').textContent = `$${high.toFixed(2)}`;
         document.getElementById('dayLow').textContent = `$${low.toFixed(2)}`;
-        document.getElementById('volatility').textContent = `${volatility}%`;
+        document.getElementById('volatility').textContent = `${volatility.toFixed(2)}%`;
+        document.getElementById('ma7').textContent = ma7 ? `$${ma7.toFixed(2)}` : 'N/A';
+        document.getElementById('ma30').textContent = ma30 ? `$${ma30.toFixed(2)}` : 'N/A';
+        document.getElementById('sentiment').textContent = `${sentiment.sentiment} (${sentiment.confidence}%)`;
+
+        // Update prediction
+        if (prediction) {
+            document.getElementById('predictionBox').innerHTML = `
+                <h4>Price Prediction</h4>
+                <div>Next Update: $${prediction.toFixed(2)}</div>
+                <small>Based on trend analysis and volatility</small>
+            `;
+        }
     }
 
-    checkPriceAlert() {
-        if (this.currentPrice <= 1800 && !this.alertTriggered) {
-            this.alertTriggered = true;
-            this.showAlert('🚨 PRICE ALERT: Gold dropped to $1800!');
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Gold Price Alert', {
-                    body: `Gold price dropped to $${this.currentPrice.toFixed(2)}`,
-                    icon: 'static/favicon.ico'
-                });
-            }
-        } else if (this.currentPrice > 1800) {
-            this.alertTriggered = false;
+    updateAlertsList() {
+        const alertsList = document.getElementById('alertsList');
+        const alerts = this.alerts.getAlertsList();
+        
+        alertsList.innerHTML = alerts.map(alert => `
+            <div class="alert-item">
+                <span>${alert.description}</span>
+                <button onclick="removeAlert(${alert.id})" style="background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 3px;">Remove</button>
+            </div>
+        `).join('');
+    }
+
+    updatePortfolioCalculator() {
+        const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+        const amount = parseFloat(document.getElementById('amount').value) || 1;
+        const resultDiv = document.getElementById('portfolioResult');
+
+        if (buyPrice && this.currentPrice) {
+            const result = this.analytics.calculateProfitLoss(buyPrice, this.currentPrice, amount);
+            resultDiv.innerHTML = `
+                <div style="margin-top: 10px;">
+                    <div>Current Value: $${result.totalValue.toFixed(2)}</div>
+                    <div class="${result.profit >= 0 ? 'positive' : 'negative'}">
+                        P&L: ${result.profit >= 0 ? '+' : ''}$${result.profit.toFixed(2)} (${result.percentage.toFixed(2)}%)
+                    </div>
+                </div>
+            `;
         }
+    }
+
+    startAutoRefresh() {
+        if (this.refreshInterval) clearInterval(this.refreshInterval);
+        this.refreshInterval = setInterval(() => this.fetchGoldPrice(), this.settings.refreshInterval);
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') toggleRazanMode();
+            if (e.key === ' ') { e.preventDefault(); refreshPrice(); }
+            if (e.key === 'h' || e.key === 'H') toggleHistory();
+            if (e.key === 's' || e.key === 'S') toggleSettings();
+            if (e.key === 't' || e.key === 'T') toggleTheme();
+        });
     }
 
     showAlert(message) {
@@ -190,22 +308,14 @@ class GoldTracker {
         setTimeout(() => alert.remove(), 5000);
     }
 
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'r' || e.key === 'R') toggleRazanMode();
-            if (e.key === ' ') { e.preventDefault(); refreshPrice(); }
-            if (e.key === 'h' || e.key === 'H') toggleHistory();
-        });
-    }
-
     clearHistory() {
         this.priceHistory = [];
-        localStorage.removeItem('goldPriceHistory');
+        this.storage.saveHistory([]);
         this.displayHistory();
     }
 }
 
-// Global functions for button clicks
+// Global functions
 function refreshPrice() {
     goldTracker.fetchGoldPrice();
 }
@@ -215,31 +325,103 @@ function toggleHistory() {
     historySection.style.display = historySection.style.display === 'none' ? 'block' : 'none';
 }
 
-function clearHistory() {
-    if (confirm('Are you sure you want to clear all price history?')) {
-        goldTracker.clearHistory();
-    }
+function toggleSettings() {
+    const settingsPanel = document.getElementById('settingsPanel');
+    settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
 }
 
 function toggleRazanMode() {
     const razanMode = document.getElementById('razanMode');
     goldTracker.razanMode = !goldTracker.razanMode;
-    localStorage.setItem('razanMode', goldTracker.razanMode);
+    goldTracker.settings.razanMode = goldTracker.razanMode;
+    goldTracker.storage.saveSettings(goldTracker.settings);
     
     if (goldTracker.razanMode) {
         razanMode.style.display = 'block';
         if (!goldTracker.chart) goldTracker.initChart();
-        goldTracker.updateChart();
+        goldTracker.updateAdvancedAnalytics();
     } else {
         razanMode.style.display = 'none';
     }
 }
 
-// Initialize the app when page loads
+function toggleTheme() {
+    goldTracker.themes.toggleTheme();
+}
+
+function changeTheme() {
+    const theme = document.getElementById('themeSelect').value;
+    goldTracker.themes.setTheme(theme);
+}
+
+function changeRefreshInterval() {
+    const interval = parseInt(document.getElementById('refreshInterval').value);
+    goldTracker.settings.refreshInterval = interval;
+    goldTracker.storage.saveSettings(goldTracker.settings);
+    goldTracker.startAutoRefresh();
+}
+
+function addAlert() {
+    const type = document.getElementById('alertType').value;
+    const value = parseFloat(document.getElementById('alertValue').value);
+    
+    if (value) {
+        goldTracker.alerts.addAlert(type, value);
+        goldTracker.updateAlertsList();
+        document.getElementById('alertValue').value = '';
+    }
+}
+
+function removeAlert(id) {
+    goldTracker.alerts.removeAlert(id);
+    goldTracker.updateAlertsList();
+}
+
+function exportData() {
+    goldTracker.storage.exportData();
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (file) {
+        goldTracker.storage.importData(file).then(() => {
+            goldTracker.priceHistory = goldTracker.storage.loadHistory();
+            goldTracker.displayHistory();
+            goldTracker.showAlert('✅ Data imported successfully!');
+        }).catch(error => {
+            goldTracker.showAlert('❌ Import failed: ' + error.message);
+        });
+    }
+}
+
+function sharePrice(platform) {
+    const price = goldTracker.currentPrice.toFixed(2);
+    const change = goldTracker.previousPrice ? ((goldTracker.currentPrice - goldTracker.previousPrice) / goldTracker.previousPrice * 100).toFixed(2) : 0;
+    const text = `Gold is trading at $${price} (${change >= 0 ? '+' : ''}${change}%) 📈 #GoldPrice #Trading`;
+    
+    const urls = {
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`
+    };
+    
+    if (urls[platform]) {
+        window.open(urls[platform], '_blank', 'width=600,height=400');
+    }
+}
+
+// Initialize the app
 let goldTracker;
 document.addEventListener('DOMContentLoaded', () => {
     goldTracker = new GoldTracker();
+    
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
     }
+    
+    // Portfolio calculator real-time updates
+    ['buyPrice', 'amount'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            goldTracker.updatePortfolioCalculator();
+        });
+    });
 });
