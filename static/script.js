@@ -115,20 +115,36 @@ class GoldTracker {
         const miniChart = document.getElementById('miniChart');
         if (this.priceHistory.length < 2) return;
 
-        const prices = this.priceHistory.slice(0, 20).map(h => h.price);
+        const prices = this.priceHistory.slice(0, 20).map(h => h.price).reverse();
         const min = Math.min(...prices);
         const max = Math.max(...prices);
-        const range = max - min;
+        const range = max - min || 1;
 
         let path = '';
+        let area = '';
         prices.forEach((price, i) => {
             const x = (i / (prices.length - 1)) * 100;
-            const y = 100 - ((price - min) / range) * 100;
-            path += i === 0 ? `M${x},${y}` : ` L${x},${y}`;
+            const y = 100 - ((price - min) / range) * 80 - 10;
+            const cmd = i === 0 ? 'M' : 'L';
+            path += `${cmd}${x},${y} `;
+            if (i === 0) area = `M${x},90 L${x},${y} `;
+            else area += `L${x},${y} `;
         });
+        area += `L${(prices.length-1) / (prices.length-1) * 100},90 Z`;
 
+        const isPositive = prices[prices.length-1] > prices[0];
+        const color = isPositive ? 'var(--success)' : 'var(--danger)';
+        
         miniChart.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="${path}" stroke="var(--accent-primary)" stroke-width="2" fill="none"/>
+            <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:${color};stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:${color};stop-opacity:0.05" />
+                </linearGradient>
+            </defs>
+            <path d="${area}" fill="url(#gradient)"/>
+            <path d="${path}" stroke="${color}" stroke-width="2" fill="none"/>
+            <circle cx="${(prices.length-1) / (prices.length-1) * 100}" cy="${100 - ((prices[prices.length-1] - min) / range) * 80 - 10}" r="2" fill="${color}"/>
         </svg>`;
     }
 
