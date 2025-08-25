@@ -394,20 +394,7 @@ function importData(event) {
     }
 }
 
-function sharePrice(platform) {
-    const price = goldTracker.currentPrice.toFixed(2);
-    const change = goldTracker.previousPrice ? ((goldTracker.currentPrice - goldTracker.previousPrice) / goldTracker.previousPrice * 100).toFixed(2) : 0;
-    const text = `Gold is trading at $${price} (${change >= 0 ? '+' : ''}${change}%) 📈 #GoldPrice #Trading`;
-    
-    const urls = {
-        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`
-    };
-    
-    if (urls[platform]) {
-        window.open(urls[platform], '_blank', 'width=600,height=400');
-    }
-}
+
 
 // Initialize the app
 let goldTracker;
