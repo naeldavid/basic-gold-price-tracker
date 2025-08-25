@@ -4,17 +4,22 @@ class DataStorage {
         this.compressionEnabled = true;
     }
 
-    saveHistory(history) {
+    saveHistory(history, asset = 'gold') {
         const compressed = this.compressionEnabled ? this.compress(history) : history;
-        localStorage.setItem('goldPriceHistory', JSON.stringify(compressed));
+        localStorage.setItem(`priceHistory_${asset}`, JSON.stringify(compressed));
     }
 
-    loadHistory() {
-        const data = localStorage.getItem('goldPriceHistory');
+    loadHistory(asset = 'gold') {
+        const data = localStorage.getItem(`priceHistory_${asset}`);
         if (!data) return [];
         
-        const parsed = JSON.parse(data);
-        return this.compressionEnabled && parsed.compressed ? this.decompress(parsed) : parsed;
+        try {
+            const parsed = JSON.parse(data);
+            return this.compressionEnabled && parsed.compressed ? this.decompress(parsed) : parsed;
+        } catch (error) {
+            console.warn('Failed to load history for', asset, error);
+            return [];
+        }
     }
 
     compress(history) {
