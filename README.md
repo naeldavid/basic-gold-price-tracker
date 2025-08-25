@@ -9,7 +9,9 @@ A "minimal", real-time gold price tracking web-app with advanced analytics.
 - **Advanced Mode**: Advanced charts and analytics
 - Mobile responsive design
 - Keyboard shortcuts
-=======
+
+---
+
 # 🏆 Gold Price Tracker Pro
 
 A comprehensive, real-time gold price tracking web-app with advanced analytics, multiple alerts, and portfolio management.
@@ -23,7 +25,8 @@ A comprehensive, real-time gold price tracking web-app with advanced analytics, 
 - **Themes**: Dark, light, and gold themes with CSS custom properties
 - **Social Sharing**: Share prices on Twitter and Facebook
 - **Mobile Optimized**: Responsive design with touch gestures
->>>>>>> 4ded5a1 (added alerts, api fallback, persistent storage, themes, analytics, better styling.)
+
+---
 
 ## ⌨️ Keyboard Shortcuts
 - `R` - Toggle Advanced Mode
@@ -31,6 +34,8 @@ A comprehensive, real-time gold price tracking web-app with advanced analytics, 
 - `H` - Toggle History
 - `S` - Toggle Settings
 - `T` - Toggle Theme
+
+---
 
 ## 🎯 Advanced Features
 - **Market Sentiment Analysis**: AI-powered sentiment with confidence scores
@@ -42,13 +47,16 @@ A comprehensive, real-time gold price tracking web-app with advanced analytics, 
 - **Moving Averages**: 7-day and 30-day moving averages
 - **Volatility Tracking**: Real-time volatility calculations
 
-<<<<<<< HEAD
+---
+
 ## Tech Stack
 - JavaScript
 - Chart.js for visualizations in advanced mode
 - CoinDesk API (CORS-friendly)
 - Local storage for persistence with price history
-=======
+
+---
+
 ## 🛠️ Tech Stack
 - **Frontend**: Vanilla JavaScript (modular architecture)
 - **Charts**: Chart.js with custom themes
@@ -57,11 +65,15 @@ A comprehensive, real-time gold price tracking web-app with advanced analytics, 
 - **Themes**: CSS custom properties
 - **Notifications**: Browser notifications + sound alerts
 
+---
+
 ## 📱 Mobile Features
 - Touch-optimized interface
 - Responsive breakpoints
 - Mobile-friendly charts
 - Gesture support
+
+---
 
 ## 🔧 Architecture
 - `api.js` - API management with fallbacks
@@ -71,4 +83,3 @@ A comprehensive, real-time gold price tracking web-app with advanced analytics, 
 - `themes.js` - Theme management
 - `script.js` - Main application logic
 - `coin.js` - Visual effects
->>>>>>> 4ded5a1 (added alerts, api fallback, persistent storage, themes, analytics, better styling.)
