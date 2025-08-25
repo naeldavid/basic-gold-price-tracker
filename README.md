@@ -1,6 +1,6 @@
-# 🧈 Gold Price Tracker
+# "Basic" Gold Price Tracker
 
-A minimal, real-time gold price tracking web-app with advanced analytics.
+A "minimal", real-time gold price tracking web-app with advanced analytics.
 
 ## Features
 - Real-time gold price updates (5-minute intervals)
