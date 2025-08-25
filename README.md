@@ -5,7 +5,7 @@ A minimal, real-time gold price tracking web-app with advanced analytics.
 ## Features
 - Real-time gold price updates (5-minute intervals)
 - Price history tracking
-- Price alerts at $1800 threshold
+- Price alerts at $any threshold
 - **Advanced Mode**: Advanced charts and analytics
 - Mobile responsive design
 - Keyboard shortcuts
