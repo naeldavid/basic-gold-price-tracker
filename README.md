@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # "Basic" Gold Price Tracker
 
 A "minimal", real-time gold price tracking web-app with advanced analytics.
