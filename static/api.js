@@ -16,7 +16,7 @@ class UniversalAPI {
         };
         
         this.fallbackPrices = {
-            btc: 45000, gold: 2050, silver: 24.5,
+            btc: 43000, gold: 2050, silver: 24.5,
             usd_eur: 0.92, usd_gbp: 0.79, usd_jpy: 150,
             bigmac_us: 5.69, bigmac_uk: 4.89, bigmac_jp: 450, bigmac_eu: 5.15
         };
@@ -47,20 +47,43 @@ class UniversalAPI {
     }
 
     async fetchCryptoPrice() {
-        try {
-            const data = await this.fetchWithTimeout('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-            
-            if (data.bitcoin?.usd) {
-                const price = data.bitcoin.usd;
-                this.lastPrices.btc = price;
-                this.saveLastPrices();
-                return price;
+        const apis = [
+            'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+            'https://api.coinbase.com/v2/exchange-rates?currency=BTC',
+            'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'
+        ];
+        
+        for (const apiUrl of apis) {
+            try {
+                const data = await this.fetchWithTimeout(apiUrl);
+                let price;
+                
+                if (apiUrl.includes('coingecko') && data.bitcoin?.usd) {
+                    price = data.bitcoin.usd;
+                } else if (apiUrl.includes('coinbase') && data.data?.rates?.USD) {
+                    price = parseFloat(data.data.rates.USD);
+                } else if (apiUrl.includes('binance') && data.price) {
+                    price = parseFloat(data.price);
+                }
+                
+                if (price && price > 1000) {
+                    this.lastPrices.btc = price;
+                    this.saveLastPrices();
+                    console.log(`BTC price fetched: $${price}`);
+                    return price;
+                }
+            } catch (error) {
+                console.warn(`BTC API ${apiUrl} failed:`, error.message);
+                continue;
             }
-        } catch (error) {
-            console.warn('BTC API failed:', error.message);
         }
         
-        return this.simulatePrice('btc');
+        // If all APIs fail, return a reasonable current BTC price instead of simulation
+        const currentBTCPrice = 43000; // Approximate current BTC price
+        this.lastPrices.btc = currentBTCPrice;
+        this.saveLastPrices();
+        console.warn('All BTC APIs failed, using fallback price:', currentBTCPrice);
+        return currentBTCPrice;
     }
 
     async fetchMetalPrice(asset) {

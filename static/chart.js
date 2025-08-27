@@ -89,16 +89,63 @@ class CustomChart {
         
         lines.innerHTML = '';
         
-        // Simple chart display
-        lines.innerHTML = `
-            <text x="${this.width / 2}" y="${this.height / 2}" 
+        if (!allHistories || Object.keys(allHistories).length === 0) {
+            lines.innerHTML = `
+                <text x="${this.width / 2}" y="${this.height / 2}" 
+                      fill="var(--text-primary)" 
+                      font-size="16" 
+                      text-anchor="middle">Multi-Asset Chart</text>
+                <text x="${this.width / 2}" y="${this.height / 2 + 30}" 
+                      fill="var(--text-secondary)" 
+                      font-size="12" 
+                      text-anchor="middle">Loading chart data...</text>
+            `;
+            return;
+        }
+        
+        // Draw simple lines for each asset
+        let yOffset = this.padding.top + 50;
+        Object.keys(this.assets).forEach(asset => {
+            if (allHistories[asset] && allHistories[asset].length > 0) {
+                const assetInfo = this.assets[asset];
+                const data = allHistories[asset];
+                const prices = data.map(d => d.price).filter(p => p && !isNaN(p));
+                
+                if (prices.length > 1) {
+                    let path = '';
+                    const chartWidth = this.width - this.padding.left - this.padding.right;
+                    const min = Math.min(...prices);
+                    const max = Math.max(...prices);
+                    const range = max - min || 1;
+                    
+                    prices.forEach((price, i) => {
+                        const x = this.padding.left + (i / (prices.length - 1)) * chartWidth;
+                        const y = yOffset + ((max - price) / range) * 40;
+                        path += (i === 0 ? `M${x},${y}` : ` L${x},${y}`);
+                    });
+                    
+                    lines.innerHTML += `
+                        <path d="${path}" 
+                              stroke="${assetInfo.color}" 
+                              stroke-width="2" 
+                              fill="none"/>
+                        <text x="${this.padding.left}" y="${yOffset - 5}" 
+                              fill="${assetInfo.color}" 
+                              font-size="12">${assetInfo.name}</text>
+                    `;
+                    
+                    yOffset += 60;
+                }
+            }
+        });
+        
+        // Add title
+        lines.innerHTML += `
+            <text x="${this.width / 2}" y="25" 
                   fill="var(--text-primary)" 
                   font-size="16" 
-                  text-anchor="middle">Multi-Asset Chart</text>
-            <text x="${this.width / 2}" y="${this.height / 2 + 30}" 
-                  fill="var(--text-secondary)" 
-                  font-size="12" 
-                  text-anchor="middle">Chart functionality available</text>
+                  font-weight="600" 
+                  text-anchor="middle">Multi-Asset Price Chart</text>
         `;
     }
 }

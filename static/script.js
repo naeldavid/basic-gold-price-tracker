@@ -374,6 +374,24 @@ class UniversalTracker {
         });
     }
 
+    generateSampleHistory(asset) {
+        const basePrice = this.allPrices[asset] || this.api.fallbackPrices[asset] || 100;
+        const history = [];
+        
+        for (let i = 0; i < 30; i++) {
+            const variation = (Math.random() - 0.5) * 0.1;
+            const price = Math.max(basePrice * (1 + variation * (i / 15)), 0.01);
+            history.push({
+                price: price,
+                timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+                asset: asset,
+                change: 0
+            });
+        }
+        
+        return history;
+    }
+
     startAutoRefresh() {
         if (this.refreshInterval) clearInterval(this.refreshInterval);
         this.refreshInterval = setInterval(() => this.fetchAllPrices(), 300000); // 5 minutes
@@ -381,11 +399,15 @@ class UniversalTracker {
 
     setupKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
+            // Prevent shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
             if (e.key === ' ') { e.preventDefault(); this.fetchAllPrices(); }
-            if (e.key === 'h' || e.key === 'H') toggleHistory();
-            if (e.key === 's' || e.key === 'S') toggleSettings();
-            if (e.key === 'n' || e.key === 'N') toggleNews();
-            if (e.key === 'a' || e.key === 'A') toggleAdvanced();
+            if (e.key.toLowerCase() === 'h') toggleHistory();
+            if (e.key.toLowerCase() === 's') toggleSettings();
+            if (e.key.toLowerCase() === 'n') toggleNews();
+            if (e.key.toLowerCase() === 'a') toggleAdvanced();
+            if (e.key.toLowerCase() === 'r') this.fetchAllPrices();
         });
     }
 }
@@ -431,11 +453,25 @@ function toggleAdvanced() {
         
         if (isHidden && window.universalTracker) {
             setTimeout(() => {
+                // Initialize chart
                 if (!window.universalTracker.chart) {
                     window.universalTracker.chart = new CustomChart('customChart');
                 }
+                
+                // Update chart with sample data
+                const sampleData = {
+                    btc: window.universalTracker.generateSampleHistory('btc'),
+                    gold: window.universalTracker.generateSampleHistory('gold'),
+                    silver: window.universalTracker.generateSampleHistory('silver'),
+                    usd_eur: window.universalTracker.generateSampleHistory('usd_eur')
+                };
+                
+                if (window.universalTracker.chart && window.universalTracker.chart.update) {
+                    window.universalTracker.chart.update(sampleData);
+                }
+                
                 window.universalTracker.updateAdvancedAnalytics();
-            }, 100);
+            }, 200);
         }
     }
 }
