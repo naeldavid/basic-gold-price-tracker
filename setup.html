@@ -135,7 +135,17 @@
         };
     </script>
     
-    <script src="static/coin.js"></script>
+    <script src="static/core.js"></script>
+    <script>
+        // Initialize coin animation on setup page
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                new CoinAnimation();
+            });
+        } else {
+            new CoinAnimation();
+        }
+    </script>
     <div class="palestine-flag" title="Free Palestine">🇵🇸</div>
 </body>
 </html>

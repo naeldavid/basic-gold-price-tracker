@@ -72,6 +72,11 @@
                     <div id="assetSelection"></div>
                     <button onclick="saveAssetSelection()">Save Selection</button>
                 </div>
+                <div class="setting-group">
+                    <h4>Configuration</h4>
+                    <button onclick="resetConfiguration()" class="btn-secondary" style="background: #dc3545;">🔄 Reset All Settings</button>
+                    <p style="font-size: 0.8em; opacity: 0.7; margin-top: 10px;">This will clear all your settings and return you to the setup page.</p>
+                </div>
             </div>
         </div>
 
@@ -174,14 +179,8 @@
         // Load main app scripts
         function loadMainApp() {
             const scripts = [
-                'static/coin.js',
-                'static/api.js',
-                'static/storage.js', 
-                'static/analytics.js',
-                'static/alerts.js',
-                'static/themes.js',
-                'static/chart.js',
-                'static/script.js'
+                'static/core.js',
+                'static/app.js'
             ];
             
             scripts.forEach((src, index) => {
@@ -189,9 +188,7 @@
                 script.src = src;
                 if (index === scripts.length - 1) {
                     script.onload = () => {
-                        if (window.UniversalTracker) {
-                            new UniversalTracker();
-                        }
+                        console.log('All scripts loaded successfully');
                     };
                 }
                 document.head.appendChild(script);
