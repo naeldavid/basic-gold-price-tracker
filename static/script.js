@@ -35,14 +35,35 @@ class UniversalTracker {
 
     setupCategoryTabs() {
         const categoryTabs = document.querySelectorAll('.category-tab');
+        const userSelectedAssets = this.api.getUserSelectedAssets();
+        
         categoryTabs.forEach(tab => {
+            const category = tab.dataset.category;
+            
+            // Check if user has any assets in this category
+            const hasAssetsInCategory = userSelectedAssets.some(asset => {
+                const assetInfo = this.api.getAssetInfo(asset);
+                return assetInfo && assetInfo.type === category;
+            });
+            
+            // Hide/show tab based on user selection
+            tab.style.display = hasAssetsInCategory ? 'block' : 'none';
+            
             tab.onclick = () => {
-                this.currentCategory = tab.dataset.category;
+                this.currentCategory = category;
                 categoryTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 this.setupAssetTabs();
             };
         });
+        
+        // Set first visible category as active
+        const firstVisibleTab = Array.from(categoryTabs).find(tab => tab.style.display !== 'none');
+        if (firstVisibleTab) {
+            this.currentCategory = firstVisibleTab.dataset.category;
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            firstVisibleTab.classList.add('active');
+        }
     }
 
     setupAssetTabs() {
@@ -51,7 +72,13 @@ class UniversalTracker {
         
         assetTabs.innerHTML = '';
         
-        const assets = this.api.getAssetsByType(this.currentCategory);
+        // Only show user-selected assets for current category
+        const userSelectedAssets = this.api.getUserSelectedAssets();
+        const assets = userSelectedAssets.filter(asset => {
+            const assetInfo = this.api.getAssetInfo(asset);
+            return assetInfo && assetInfo.type === this.currentCategory;
+        });
+        
         assets.forEach((asset) => {
             const assetInfo = this.api.getAssetInfo(asset);
             if (!assetInfo) return;

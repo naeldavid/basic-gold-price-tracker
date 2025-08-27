@@ -3,12 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>"Basic" Gold Price Tracker</title>
+    <title>"Basic" Price Tracker</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🏆 "Basic" Gold Price Tracker</h1>
+    <div id="welcomeMessage" class="welcome-message" style="display: none;">
+        <div class="welcome-content">
+            <h2>🎉 Welcome, <span id="userNameDisplay"></span>!</h2>
+            <p>Welcome to the "Basic" Price Tracker</p>
+        </div>
+    </div>
+
+    <div class="container" id="mainApp">
+        <h1>"Basic" Price Tracker</h1>
         
         <div class="currency-selector">
             <label>Base Currency: 
@@ -95,10 +103,6 @@
                     <span id="ma7">$0.00</span>
                 </div>
                 <div class="stat-card">
-                    <h4>30-Day MA</h4>
-                    <span id="ma30">$0.00</span>
-                </div>
-                <div class="stat-card">
                     <h4>Market Sentiment</h4>
                     <span id="sentiment">Neutral</span>
                 </div>
@@ -106,13 +110,98 @@
         </div>
     </div>
 
-    <script src="static/api.js"></script>
-    <script src="static/storage.js"></script>
-    <script src="static/analytics.js"></script>
-    <script src="static/alerts.js"></script>
-    <script src="static/themes.js"></script>
-    <script src="static/chart.js"></script>
-    <script src="static/script.js"></script>
+    <script>
+        function getUserData() {
+            // Try multiple sources for cross-browser compatibility
+            let setupComplete, userName, selectedAssets;
+            
+            // Method 1: URL parameters (most reliable)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('setup') === 'true') {
+                setupComplete = 'true';
+                userName = decodeURIComponent(urlParams.get('user') || '');
+                selectedAssets = decodeURIComponent(urlParams.get('assets') || '[]');
+                
+                // Save to storage for future visits
+                try {
+                    localStorage.setItem('setupComplete', 'true');
+                    localStorage.setItem('userName', userName);
+                    localStorage.setItem('userSelectedAssets', selectedAssets);
+                } catch (e) {
+                    sessionStorage.setItem('setupComplete', 'true');
+                    sessionStorage.setItem('userName', userName);
+                    sessionStorage.setItem('userSelectedAssets', selectedAssets);
+                }
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                // Method 2: localStorage
+                setupComplete = localStorage.getItem('setupComplete');
+                userName = localStorage.getItem('userName');
+                selectedAssets = localStorage.getItem('userSelectedAssets');
+                
+                // Method 3: sessionStorage fallback
+                if (!setupComplete) {
+                    setupComplete = sessionStorage.getItem('setupComplete');
+                    userName = sessionStorage.getItem('userName');
+                    selectedAssets = sessionStorage.getItem('userSelectedAssets');
+                }
+            }
+            
+            return { setupComplete, userName, selectedAssets };
+        }
+        
+        // Check setup status
+        const { setupComplete, userName, selectedAssets } = getUserData();
+        
+        console.log('Setup complete:', setupComplete);
+        console.log('User name:', userName);
+        console.log('Selected assets:', selectedAssets);
+        
+        if (setupComplete !== 'true' || !userName || !selectedAssets) {
+            console.log('Redirecting to setup...');
+            window.location.href = 'setup.html';
+        } else {
+            // Show welcome message
+            document.getElementById('userNameDisplay').textContent = userName;
+            document.getElementById('welcomeMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('welcomeMessage').style.display = 'none';
+            }, 3000);
+        }
+        
+        // Load main app scripts
+        function loadMainApp() {
+            const scripts = [
+                'static/coin.js',
+                'static/api.js',
+                'static/storage.js', 
+                'static/analytics.js',
+                'static/alerts.js',
+                'static/themes.js',
+                'static/chart.js',
+                'static/script.js'
+            ];
+            
+            scripts.forEach((src, index) => {
+                const script = document.createElement('script');
+                script.src = src;
+                if (index === scripts.length - 1) {
+                    script.onload = () => {
+                        if (window.UniversalTracker) {
+                            new UniversalTracker();
+                        }
+                    };
+                }
+                document.head.appendChild(script);
+            });
+        }
+        
+        loadMainApp();
+    </script>
+
+
     
     <div class="shortcuts-panel expanded" id="shortcutsPanel">
         <div class="shortcuts-header">⌨️ Shortcuts</div>
@@ -127,5 +216,12 @@
     </div>
     
     <a href="https://github.com/naeldavid/basic-gold-price-tracker" target="_blank" class="github-btn" title="View on GitHub">⭐ GitHub</a>
+    
+    <div class="palestine-flag" title="Free Palestine">🇵🇸</div>
+</body>
+</html> </div>
+    </div>
+    
+    <a href="https://github.com/naeldavid/basic-gold-price-tracker" target="_blank" class="github-btn" title="View on GitHub">View this Project on GitHub</a>
 </body>
 </html>

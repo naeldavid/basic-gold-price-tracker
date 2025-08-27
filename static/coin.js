@@ -1,97 +1,86 @@
-class CoinRain {
+class CoinAnimation {
     constructor() {
         this.coins = [];
-        this.canvas = null;
-        this.ctx = null;
-        this.animationId = null;
+        this.coinEmojis = ['🪙', '💰', '🥇', '💎', '₿'];
         this.init();
     }
 
     init() {
-        this.canvas = document.createElement('canvas');
-        this.canvas.id = 'coinCanvas';
-        this.canvas.style.position = 'fixed';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = '100%';
-        this.canvas.style.pointerEvents = 'none';
-        this.canvas.style.zIndex = '999';
-        document.body.appendChild(this.canvas);
-        
-        this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
+        this.createCoinContainer();
+        this.startAnimation();
     }
 
-    resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+    createCoinContainer() {
+        const container = document.createElement('div');
+        container.id = 'coinContainer';
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        `;
+        document.body.appendChild(container);
     }
 
     createCoin() {
-        return {
-            x: Math.random() * this.canvas.width,
-            y: -20,
-            size: Math.random() * 15 + 10,
-            speed: Math.random() * 3 + 2,
-            rotation: 0,
-            rotationSpeed: (Math.random() - 0.5) * 0.2
-        };
-    }
-
-    drawCoin(coin) {
-        this.ctx.save();
-        this.ctx.translate(coin.x, coin.y);
-        this.ctx.rotate(coin.rotation);
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.fillStyle = '#FFA500';
-        this.ctx.font = `${coin.size}px Arial`;
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('$', 0, coin.size/3);
-        this.ctx.restore();
-    }
-
-    start() {
-        if (this.animationId) return;
+        const coin = document.createElement('div');
+        const emoji = this.coinEmojis[Math.floor(Math.random() * this.coinEmojis.length)];
         
-        const animate = () => {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            if (Math.random() < 0.1) {
-                this.coins.push(this.createCoin());
-            }
-            
-            this.coins = this.coins.filter(coin => {
-                coin.y += coin.speed;
-                coin.rotation += coin.rotationSpeed;
-                this.drawCoin(coin);
-                return coin.y < this.canvas.height + 50;
-            });
-            
-            this.animationId = requestAnimationFrame(animate);
-        };
-        
-        animate();
-        setTimeout(() => this.stop(), 3000);
-    }
+        coin.textContent = emoji;
+        coin.style.cssText = `
+            position: absolute;
+            font-size: ${Math.random() * 20 + 15}px;
+            left: ${Math.random() * 100}%;
+            top: -50px;
+            animation: fall ${Math.random() * 3 + 2}s linear forwards;
+            opacity: ${Math.random() * 0.7 + 0.3};
+        `;
 
-    stop() {
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
+        const container = document.getElementById('coinContainer');
+        if (container) {
+            container.appendChild(coin);
+            
+            // Remove coin after animation
+            setTimeout(() => {
+                if (coin.parentNode) {
+                    coin.parentNode.removeChild(coin);
+                }
+            }, 5000);
         }
-        this.coins = [];
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    startAnimation() {
+        // Add CSS animation
+        if (!document.getElementById('coinAnimationCSS')) {
+            const style = document.createElement('style');
+            style.id = 'coinAnimationCSS';
+            style.textContent = `
+                @keyframes fall {
+                    to {
+                        transform: translateY(100vh) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create 10 coins per second
+        setInterval(() => {
+            this.createCoin();
+        }, 100);
     }
 }
 
-const coinRain = new CoinRain();
-
-// Trigger coin rain on price updates
-function triggerCoinRain() {
-    coinRain.start();
+// Auto-start when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new CoinAnimation();
+    });
+} else {
+    new CoinAnimation();
 }

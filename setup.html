@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - "Basic" Price Tracker</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-content">
+            <h1>🏆 Welcome to "Basic" Price Tracker</h1>
+            <p>Let's get you set up with personalized asset tracking</p>
+            
+            <div class="user-input">
+                <label for="userName">What's your name?</label>
+                <input type="text" id="userName" placeholder="Enter your name" required>
+            </div>
+            
+            <h2>🎯 Select Your Assets</h2>
+            <p>Choose which assets you want to track:</p>
+            
+            <div class="selection-grid">
+                <div class="selection-category">
+                    <h3>₿ Cryptocurrency</h3>
+                    <label><input type="checkbox" value="btc" checked> Bitcoin (BTC)</label>
+                    <label><input type="checkbox" value="eth"> Ethereum (ETH)</label>
+                    <label><input type="checkbox" value="bnb"> Binance Coin (BNB)</label>
+                    <label><input type="checkbox" value="ada"> Cardano (ADA)</label>
+                    <label><input type="checkbox" value="sol"> Solana (SOL)</label>
+                    <label><input type="checkbox" value="xrp"> Ripple (XRP)</label>
+                    <label><input type="checkbox" value="dot"> Polkadot (DOT)</label>
+                    <label><input type="checkbox" value="doge"> Dogecoin (DOGE)</label>
+                    <label><input type="checkbox" value="avax"> Avalanche (AVAX)</label>
+                    <label><input type="checkbox" value="matic"> Polygon (MATIC)</label>
+                </div>
+                
+                <div class="selection-category">
+                    <h3>🥇 Precious Metals</h3>
+                    <label><input type="checkbox" value="gold" checked> Gold (XAU)</label>
+                    <label><input type="checkbox" value="silver" checked> Silver (XAG)</label>
+                    <label><input type="checkbox" value="platinum"> Platinum (XPT)</label>
+                    <label><input type="checkbox" value="palladium"> Palladium (XPD)</label>
+                </div>
+                
+                <div class="selection-category">
+                    <h3>💱 Major Currencies</h3>
+                    <label><input type="checkbox" value="usd_eur" checked> USD to EUR</label>
+                    <label><input type="checkbox" value="usd_gbp"> USD to GBP</label>
+                    <label><input type="checkbox" value="usd_jpy"> USD to JPY</label>
+                    <label><input type="checkbox" value="usd_cad"> USD to CAD</label>
+                    <label><input type="checkbox" value="usd_aud"> USD to AUD</label>
+                    <label><input type="checkbox" value="usd_chf"> USD to CHF</label>
+                    <label><input type="checkbox" value="usd_cny"> USD to CNY</label>
+                    <label><input type="checkbox" value="usd_inr"> USD to INR</label>
+                </div>
+                
+                <div class="selection-category">
+                    <h3>🌍 World Currencies</h3>
+                    <label><input type="checkbox" value="usd_krw"> USD to KRW</label>
+                    <label><input type="checkbox" value="usd_brl"> USD to BRL</label>
+                    <label><input type="checkbox" value="usd_mxn"> USD to MXN</label>
+                    <label><input type="checkbox" value="usd_rub"> USD to RUB</label>
+                    <label><input type="checkbox" value="usd_try"> USD to TRY</label>
+                    <label><input type="checkbox" value="usd_zar"> USD to ZAR</label>
+                    <label><input type="checkbox" value="usd_nok"> USD to NOK</label>
+                    <label><input type="checkbox" value="usd_sek"> USD to SEK</label>
+                </div>
+                
+                <div class="selection-category">
+                    <h3>🍔 Big Mac Index</h3>
+                    <label><input type="checkbox" value="bigmac_us" checked> USA</label>
+                    <label><input type="checkbox" value="bigmac_uk"> United Kingdom</label>
+                    <label><input type="checkbox" value="bigmac_jp"> Japan</label>
+                    <label><input type="checkbox" value="bigmac_eu"> European Union</label>
+                    <label><input type="checkbox" value="bigmac_ca"> Canada</label>
+                </div>
+            </div>
+            
+            <div class="setup-actions">
+                <button id="startTrackingBtn" class="btn-primary">🚀 Start Tracking</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('startTrackingBtn').onclick = function() {
+            const userName = document.getElementById('userName').value.trim();
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const selectedAssets = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (!userName) {
+                alert('Please enter your name.');
+                return;
+            }
+            
+            if (selectedAssets.length === 0) {
+                alert('Please select at least one asset to track.');
+                return;
+            }
+            
+            // Try multiple storage methods for cross-browser compatibility
+            try {
+                // Method 1: localStorage
+                localStorage.setItem('userName', userName);
+                localStorage.setItem('userSelectedAssets', JSON.stringify(selectedAssets));
+                localStorage.setItem('setupComplete', 'true');
+                
+                // Method 2: sessionStorage as backup
+                sessionStorage.setItem('userName', userName);
+                sessionStorage.setItem('userSelectedAssets', JSON.stringify(selectedAssets));
+                sessionStorage.setItem('setupComplete', 'true');
+                
+                console.log('Data saved, redirecting...');
+                
+                // Use URL parameters as additional backup
+                const params = new URLSearchParams();
+                params.set('user', encodeURIComponent(userName));
+                params.set('assets', encodeURIComponent(JSON.stringify(selectedAssets)));
+                params.set('setup', 'true');
+                
+                window.location.href = 'index.html?' + params.toString();
+                
+            } catch (error) {
+                console.error('Storage error:', error);
+                // Fallback to URL only
+                const params = new URLSearchParams();
+                params.set('user', encodeURIComponent(userName));
+                params.set('assets', encodeURIComponent(JSON.stringify(selectedAssets)));
+                params.set('setup', 'true');
+                
+                window.location.href = 'index.html?' + params.toString();
+            }
+        };
+    </script>
+    
+    <script src="static/coin.js"></script>
+    <div class="palestine-flag" title="Free Palestine">🇵🇸</div>
+</body>
+</html>
