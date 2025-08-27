@@ -123,7 +123,7 @@ CoinAnimation       // Background animations
 
 ## 🚀 Getting Started
 
-1. **Open Application**: Launch `index.html` in a modern browser
+1. **Open Application**: Launch `nael.openlab.fr/basic-price-tracker` in a modern browser
 2. **Complete Setup**: Enter name and select assets to track
 3. **Explore Interface**: Navigate categories and view real-time prices
 4. **Customize Experience**: Adjust themes, alerts, and settings
