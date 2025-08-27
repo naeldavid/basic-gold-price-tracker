@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>"Basic" Gold Tracker</title>
+    <title>Universal Asset Tracker</title>
     <link rel="stylesheet" href="static/style.css">
-    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-    <meta name="description" content="Advanced gold price tracker with real-time updates, analytics, and alerts">
 </head>
 <body>
     <div class="container">
-        <h1>"Basic" Price Tracker</h1>
+        <h1>Universal Asset Tracker</h1>
         
         <div class="currency-selector">
             <label>Base Currency: 
@@ -19,34 +17,6 @@
                     <option value="EUR">EUR (€)</option>
                     <option value="GBP">GBP (£)</option>
                     <option value="JPY">JPY (¥)</option>
-                    <option value="CAD">CAD (C$)</option>
-                    <option value="AUD">AUD (A$)</option>
-                    <option value="CHF">CHF (Fr)</option>
-                    <option value="CNY">CNY (¥)</option>
-                    <option value="INR">INR (₹)</option>
-                    <option value="KRW">KRW (₩)</option>
-                    <option value="MXN">MXN ($)</option>
-                    <option value="BRL">BRL (R$)</option>
-                    <option value="RUB">RUB (₽)</option>
-                    <option value="SGD">SGD (S$)</option>
-                    <option value="NZD">NZD (NZ$)</option>
-                    <option value="NOK">NOK (kr)</option>
-                    <option value="SEK">SEK (kr)</option>
-                    <option value="DKK">DKK (kr)</option>
-                    <option value="PLN">PLN (zł)</option>
-                    <option value="CZK">CZK (Kč)</option>
-                    <option value="HUF">HUF (Ft)</option>
-                    <option value="TRY">TRY (₺)</option>
-                    <option value="ZAR">ZAR (R)</option>
-                    <option value="THB">THB (฿)</option>
-                    <option value="PHP">PHP (₱)</option>
-                    <option value="IDR">IDR (Rp)</option>
-                    <option value="MYR">MYR (RM)</option>
-                    <option value="VND">VND (₫)</option>
-                    <option value="AED">AED (د.إ)</option>
-                    <option value="SAR">SAR (﷼)</option>
-                    <option value="ILS">ILS (₪)</option>
-                    <option value="EGP">EGP (£)</option>
                 </select>
             </label>
         </div>
@@ -62,13 +32,10 @@
         </div>
         
         <div class="price-display">
-            <div class="metal-header" id="metalHeader">🥇 Gold Price</div>
+            <div class="metal-header" id="metalHeader">₿ Bitcoin</div>
             <div class="current-price" id="currentPrice">Loading...</div>
             <div class="price-change" id="priceChange"></div>
-            <div class="trend-indicator" id="trendIndicator"></div>
-            <div class="mini-chart" id="miniChart"></div>
-            <div class="price-ticker" id="priceTicker"></div>
-            <div class="loading" id="loadingText">Fetching latest prices...</div>
+            <div class="loading" id="loadingText">Fetching prices...</div>
         </div>
         
         <div class="multi-asset-overview" id="multiAssetOverview">
@@ -79,70 +46,23 @@
         <div class="controls">
             <button class="btn-primary" onclick="refreshPrice()">🔄 Refresh</button>
             <button class="btn-secondary" onclick="toggleHistory()">📊 History</button>
-            <button class="btn-secondary" onclick="clearHistory()">🗑️ Clear History</button>
             <button class="btn-secondary" onclick="toggleSettings()">⚙️ Settings</button>
             <button class="btn-secondary" onclick="toggleNews()">📰 News</button>
-            <button class="btn-secondary" onclick="exportData()">💾 Export</button>
-            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📁 Import</button>
+            <button class="btn-secondary" onclick="toggleAdvanced()">📈 Advanced</button>
         </div>
 
         <div class="history" id="historySection" style="display: none;">
-            <h3>Price History :</h3>
+            <h3>Price History</h3>
             <div id="historyList"></div>
         </div>
-        <div class="settings-panel" id="settingsPanel">
-            <h3>Settings & Alerts</h3>
+
+        <div class="settings-panel" id="settingsPanel" style="display: none;">
+            <h3>Settings</h3>
             <div class="settings-grid">
                 <div class="setting-group">
-                    <h4>Price Alerts</h4>
-                    <div id="alertsList"></div>
-                    <div style="margin-top: 10px;">
-                        <select id="alertType">
-                            <option value="above">Above</option>
-                            <option value="below">Below</option>
-                            <option value="change_up">Increase %</option>
-                            <option value="change_down">Decrease %</option>
-                        </select>
-                        <input type="number" id="alertValue" placeholder="Value" step="0.01">
-                        <button onclick="addAlert()">Add Alert</button>
-                    </div>
-                </div>
-                <div class="setting-group">
-                    <h4>Preferences</h4>
-                    <label><input type="checkbox" id="soundEnabled"> Sound Alerts</label><br>
-                    <label>Theme: <select id="themeSelect" onchange="changeTheme()"></select></label><br>
-                    <label>Refresh: <select id="refreshInterval" onchange="changeRefreshInterval()">
-                        <option value="60000">1 minute</option>
-                        <option value="300000" selected>5 minutes</option>
-                        <option value="600000">10 minutes</option>
-                    </select></label>
-                </div>
-                <div class="setting-group">
-                    <h4>Portfolio Manager</h4>
-                    <div style="max-height: 150px; overflow-y: auto; border: 1px solid var(--bg-tertiary); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        <div id="portfolioSelection"></div>
-                    </div>
-                    <button onclick="savePortfolioSelection()" style="padding: 5px 10px; background: var(--accent-primary); color: #333; border: none; border-radius: 3px; margin-bottom: 10px;">Save Portfolio</button>
-                    <div id="portfolioCalculator" style="margin-top: 10px;">
-                        <select id="portfolioAsset"></select>
-                        <input type="number" id="buyPrice" placeholder="Buy Price" step="0.01">
-                        <input type="number" id="amount" placeholder="Amount" step="0.01" value="1">
-                        <div id="portfolioResult"></div>
-                    </div>
-                </div>
-                <div class="setting-group">
                     <h4>Asset Selection</h4>
-                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--bg-tertiary); padding: 10px; border-radius: 5px;">
-                        <div id="assetSelection"></div>
-                    </div>
-                    <button onclick="saveAssetSelection()" style="margin-top: 10px; padding: 5px 10px; background: var(--accent-primary); color: #333; border: none; border-radius: 3px;">Save Selection</button>
-                </div>
-                <div class="setting-group">
-                    <h4>Display Options</h4>
-                    <label><input type="checkbox" id="showAllAssets" checked> Show Portfolio Overview</label><br>
-                    <label><input type="checkbox" id="showNews" checked> Show News Feed</label><br>
-                    <label><input type="checkbox" id="realTimeUpdates"> Real-time Updates</label>
+                    <div id="assetSelection"></div>
+                    <button onclick="saveAssetSelection()">Save Selection</button>
                 </div>
             </div>
         </div>
@@ -152,16 +72,10 @@
             <div id="newsList"></div>
         </div>
 
-        <div class="razan-mode" id="razanMode" style="display: none;">
+        <div class="advanced-mode" id="advancedMode" style="display: none;">
             <h2>Advanced Analytics 📈</h2>
-            <div class="prediction-box" id="predictionBox"></div>
-
-            <div style="background: var(--bg-tertiary); padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 0.9em;">
-                📊 Multi-Asset Chart: Bitcoin (Orange), Gold (Yellow), Silver (Gray), USD Strength (Green)
-                <br><small>Note: Bitcoin values are divided by 1000 for scale comparison</small>
-            </div>
             <div class="chart-container">
-                <div id="customChart" style="width: 100%; height: 400px; background: var(--bg-tertiary); border-radius: 10px; position: relative;"></div>
+                <div id="customChart"></div>
             </div>
             <div class="advanced-stats">
                 <div class="stat-card">
@@ -188,46 +102,16 @@
                     <h4>Market Sentiment</h4>
                     <span id="sentiment">Neutral</span>
                 </div>
-                <div class="stat-card">
-                    <h4>RSI (14)</h4>
-                    <span id="rsi">50</span>
-                </div>
-                <div class="stat-card">
-                    <h4>Support Level</h4>
-                    <span id="support">$0.00</span>
-                </div>
-                <div class="stat-card">
-                    <h4>Resistance Level</h4>
-                    <span id="resistance">$0.00</span>
-                </div>
             </div>
         </div>
     </div>
 
-    <div class="shortcuts-panel expanded" id="shortcutsPanel">
-        <div class="shortcuts-header">⌨️ Shortcuts</div>
-        <div class="shortcuts-content" id="shortcutsContent">
-            <div><kbd>1-5</kbd> Switch Metals</div>
-            <div><kbd>Space</kbd> Refresh</div>
-            <div><kbd>R</kbd> Advanced Mode</div>
-            <div><kbd>H</kbd> History</div>
-            <div><kbd>S</kbd> Settings</div>
-            <div><kbd>T</kbd> Theme</div>
-            <div><kbd>N</kbd> News</div>
-        </div>
-    </div>
-    
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🎨</button>
-    <a href="https://github.com/naeldavid/basic-gold-price-tracker" target="_blank" class="github-btn" title="View on GitHub">⭐ GitHub</a>
-    <div class="razan-btn" onclick="toggleRazanMode()"></div>
-
-    <script src="static/chart.js"></script>
     <script src="static/api.js"></script>
     <script src="static/storage.js"></script>
     <script src="static/analytics.js"></script>
     <script src="static/alerts.js"></script>
     <script src="static/themes.js"></script>
+    <script src="static/chart.js"></script>
     <script src="static/script.js"></script>
-    <script src="static/coin.js"></script>
 </body>
 </html>

@@ -27,24 +27,92 @@ body {
     transition: all 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    body { padding: 10px; }
-    .container { padding: 15px; }
-    .current-price { font-size: 2em; }
-    .controls { justify-content: center; }
-    button { flex: 1; min-width: 120px; }
-    .advanced-stats { grid-template-columns: repeat(2, 1fr); }
-    .razan-btn { bottom: 15px; right: 15px; }
-    .category-tabs { flex-wrap: wrap; }
-    .asset-tabs { justify-content: center; }
-    .assets-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 .container {
     background: var(--bg-secondary);
     padding: 20px;
-    border-radius: 8px;
     box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+.currency-selector {
+    margin: 15px 0;
+    text-align: center;
+    padding: 10px;
+    background: var(--bg-secondary);
+}
+
+.currency-selector label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.currency-selector select {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: 1px solid var(--bg-tertiary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.asset-selector {
+    margin: 20px 0;
+}
+
+.category-tabs {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.category-tab {
+    padding: 8px 12px;
+    border: none;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.category-tab:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-1px);
+}
+
+.category-tab.active {
+    background: var(--accent-primary);
+    color: #333;
+    font-weight: 600;
+}
+
+.asset-tabs {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.asset-tab {
+    padding: 10px 15px;
+    border: none;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.asset-tab:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+}
+
+.asset-tab.active {
+    background: var(--accent-primary);
+    color: #333;
+    font-weight: bold;
 }
 
 .price-display {
@@ -52,7 +120,6 @@ body {
     margin: 20px 0;
     padding: 20px;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    border-radius: 8px;
     position: relative;
 }
 
@@ -70,6 +137,47 @@ body {
 .positive { color: var(--success); }
 .negative { color: var(--danger); }
 
+.multi-asset-overview {
+    background: var(--bg-secondary);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.asset-card {
+    background: var(--bg-tertiary);
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.asset-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.asset-card.selected {
+    border: 2px solid var(--accent-primary);
+}
+
+.asset-type-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 5px;
+    background: var(--accent-secondary);
+    color: #333;
+}
+
 .controls {
     display: flex;
     gap: 10px;
@@ -80,7 +188,6 @@ body {
 button {
     padding: 10px 20px;
     border: none;
-    border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
 }
@@ -121,101 +228,10 @@ button {
     background-color: var(--bg-tertiary);
 }
 
-.loading {
-    text-align: center;
-    color: #666;
-}
-
-.razan-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(45deg, #000000, #ffffff);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    opacity: 0.3;
-    transition: opacity 0.3s;
-    z-index: 1000;
-}
-
-.advanced-mode {
-    margin-top: 30px;
-    padding: 20px;
-    background: var(--bg-tertiary);
-    border-radius: 15px;
-    color: var(--text-primary);
-}
-
-.chart-container {
-    background: var(--bg-tertiary);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-.advanced-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.stat-card {
-    background: var(--bg-tertiary);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    transition: transform 0.2s ease;
-}
-.stat-card:hover {
-    transform: translateY(-2px);
-}
-
-.stat-card h4 {
-    margin: 0 0 10px 0;
-    font-size: 0.9em;
-    opacity: 0.8;
-}
-
-.stat-card span {
-    font-size: 1.5em;
-    font-weight: bold;
-}
-
-.price-alert {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(45deg, #ff4757, #ff3838);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 25px;
-    font-weight: bold;
-    z-index: 1001;
-    animation: alertPulse 0.5s ease-in-out;
-    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
-}
-
-@keyframes alertPulse {
-    0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
-    100% { transform: translateX(-50%) scale(1); opacity: 1; }
-}
-
-/* New UI Components */
 .settings-panel {
     background: var(--bg-secondary);
-    border-radius: 10px;
     padding: 20px;
     margin: 20px 0;
-    display: none;
 }
 
 .settings-grid {
@@ -227,7 +243,6 @@ button {
 .setting-group {
     background: var(--bg-tertiary);
     padding: 15px;
-    border-radius: 8px;
 }
 
 .setting-group h4 {
@@ -235,307 +250,9 @@ button {
     color: var(--accent-primary);
 }
 
-.alert-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
-    margin: 5px 0;
-}
-
-.trend-indicator {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: bold;
-}
-
-.trend-bullish { background: var(--success); color: white; }
-.trend-bearish { background: var(--danger); color: white; }
-.trend-neutral { background: var(--warning); color: black; }
-
-.mini-chart {
-    height: 60px;
-    margin: 10px 0;
-    background: var(--bg-tertiary);
-    border-radius: 5px;
-    position: relative;
-    overflow: hidden;
-}
-
-.prediction-box {
-    background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
-    color: #333;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 15px 0;
-    text-align: center;
-}
-
-.portfolio-section {
-    background: var(--bg-secondary);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px 0;
-}
-
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--accent-primary);
-    color: #333;
-    border: none;
-    padding: 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    z-index: 1000;
-    transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-    transform: scale(1.1);
-}
-
-.github-btn {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: #333;
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
-    z-index: 1000;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.github-btn:hover {
-    background: #555;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.shortcuts-panel {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: var(--bg-secondary);
-    border-radius: 10px;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-}
-
-.shortcuts-header {
-    padding: 10px 15px;
-    background: var(--accent-primary);
-    color: #333;
-    border-radius: 10px 10px 0 0;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.shortcuts-content {
-    padding: 10px;
-    display: none;
-    min-width: 150px;
-}
-
-.shortcuts-content div {
-    padding: 5px 0;
-    font-size: 12px;
-    color: var(--text-primary);
-}
-
-.shortcuts-content kbd {
-    background: var(--bg-tertiary);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 11px;
-    margin-right: 8px;
-    border: 1px solid var(--accent-secondary);
-}
-
-.shortcuts-panel.expanded .shortcuts-content {
-    display: block;
-}
-
-.shortcuts-panel.expanded .shortcuts-header {
-    border-radius: 10px 10px 0 0;
-}
-
-
-
-/* Currency Selector */
-.currency-selector {
-    margin: 15px 0;
-    text-align: center;
-    padding: 10px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-}
-
-.currency-selector label {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.currency-selector select {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border: 1px solid var(--bg-tertiary);
-    border-radius: 5px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-size: 14px;
-}
-
-/* Multi-Asset Interface */
-.asset-selector {
-    margin: 20px 0;
-}
-
-.category-tabs {
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-
-.category-tab {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 15px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.category-tab:hover {
-    background: var(--accent-secondary);
-    transform: translateY(-1px);
-}
-
-.category-tab.active {
-    background: var(--accent-primary);
-    color: #333;
-    font-weight: 600;
-}
-
-.asset-tabs {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.asset-tab {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 20px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.asset-tab:hover {
-    background: var(--accent-secondary);
-    transform: translateY(-2px);
-}
-
-.asset-tab.active {
-    background: var(--accent-primary);
-    color: #333;
-    font-weight: bold;
-}
-
-.asset-header {
-    font-size: 1.2em;
-    font-weight: 600;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.multi-asset-overview {
-    background: var(--bg-secondary);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 20px 0;
-}
-
-.assets-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-top: 15px;
-}
-
-.asset-card {
-    background: var(--bg-tertiary);
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.asset-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.asset-card.selected {
-    border: 2px solid var(--accent-primary);
-}
-
-.asset-type-badge {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 500;
-    margin-top: 5px;
-    background: var(--accent-secondary);
-    color: #333;
-}
-
-.price-ticker {
-    background: var(--bg-tertiary);
-    padding: 8px;
-    border-radius: 5px;
-    margin: 10px 0;
-    font-size: 0.9em;
-    text-align: center;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-/* News Feed */
 .news-feed {
     background: var(--bg-secondary);
     padding: 20px;
-    border-radius: 10px;
     margin: 20px 0;
     max-height: 400px;
     overflow-y: auto;
@@ -544,7 +261,6 @@ button {
 .news-item {
     background: var(--bg-tertiary);
     padding: 15px;
-    border-radius: 8px;
     margin: 10px 0;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -565,76 +281,59 @@ button {
     opacity: 0.7;
 }
 
-/* Chart Controls */
-.chart-controls {
-    display: flex;
-    gap: 10px;
-    margin: 15px 0;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.chart-controls button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 15px;
+.advanced-mode {
+    margin-top: 30px;
+    padding: 20px;
     background: var(--bg-tertiary);
     color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.chart-controls button:hover {
-    background: var(--accent-primary);
-    color: #333;
+.chart-container {
+    background: var(--bg-tertiary);
+    padding: 20px;
+    margin: 20px 0;
 }
 
-.chart-controls button.active {
-    background: var(--accent-primary);
-    color: #333;
+.advanced-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
 }
 
-/* Enhanced Tooltips */
-.tooltip {
-    position: absolute;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    pointer-events: none;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+.stat-card {
+    background: var(--bg-tertiary);
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
 }
 
-/* Real-time Indicators */
-.live-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    animation: blink 1s infinite;
-    margin-left: 5px;
+.stat-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    opacity: 0.8;
 }
 
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.3; }
+.stat-card span {
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
-/* Mobile Enhancements */
+.loading {
+    text-align: center;
+    color: #666;
+}
+
 @media (max-width: 768px) {
-    .metal-tabs {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .metals-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .chart-controls {
-        flex-direction: column;
-        align-items: center;
-    }
+    body { padding: 10px; }
+    .container { padding: 15px; }
+    .current-price { font-size: 2em; }
+    .controls { justify-content: center; }
+    button { flex: 1; min-width: 120px; }
+    .category-tabs { flex-wrap: wrap; }
+    .asset-tabs { justify-content: center; }
+    .assets-grid { grid-template-columns: repeat(2, 1fr); }
 }
