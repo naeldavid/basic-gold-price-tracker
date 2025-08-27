@@ -7,7 +7,7 @@ A simple, real-time multi-asset tracking web application with analytics, portfol
 ### 📊 Multi-Asset Support
 - **Cryptocurrencies**: Bitcoin, Ethereum, BNB, Cardano, Solana, XRP, Polkadot, Dogecoin, Avalanche, Polygon
 - **Precious Metals**: Gold, Silver, Platinum, Palladium
-- **Major Currencies**: EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR
+- **Major Currencies**: EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR, AED, BHD
 - **Big Mac Index**: Economic indicator across 5 countries
 
 ### 🔄 Real-Time Data
@@ -141,8 +141,8 @@ CoinAnimation       // Background animations
 ### Precious Metals (4)
 - Gold (XAU), Silver (XAG), Platinum (XPT), Palladium (XPD)
 
-### Major Currencies (8)
-- EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR
+### Major Currencies (10)
+- EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR, AED, BHD
 
 ### Economic Indicators (5)
 - Big Mac Index: USA, UK, Japan, EU, Canada

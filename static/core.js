@@ -31,6 +31,8 @@ class UniversalAPI {
             usd_chf: { symbol: 'CHF', name: 'USD to Swiss Franc', emoji: '🇨🇭', type: 'currency' },
             usd_cny: { symbol: 'CNY', name: 'USD to Chinese Yuan', emoji: '🇨🇳', type: 'currency' },
             usd_inr: { symbol: 'INR', name: 'USD to Indian Rupee', emoji: '🇮🇳', type: 'currency' },
+            usd_aed: { symbol: 'AED', name: 'USD to UAE Dirham', emoji: '🇦🇪', type: 'currency' },
+            usd_bhd: { symbol: 'BHD', name: 'USD to Bahraini Dinar', emoji: '🇧🇭', type: 'currency' },
             
             // World Currencies
             usd_krw: { symbol: 'KRW', name: 'USD to Korean Won', emoji: '🇰🇷', type: 'currency' },
@@ -56,7 +58,7 @@ class UniversalAPI {
             // Metals
             gold: 2050, silver: 24.5, platinum: 950, palladium: 1200,
             // Major Currencies
-            usd_eur: 0.92, usd_gbp: 0.79, usd_jpy: 150, usd_cad: 1.35, usd_aud: 1.52, usd_chf: 0.88, usd_cny: 7.25, usd_inr: 83.2,
+            usd_eur: 0.92, usd_gbp: 0.79, usd_jpy: 150, usd_cad: 1.35, usd_aud: 1.52, usd_chf: 0.88, usd_cny: 7.25, usd_inr: 83.2, usd_aed: 3.67, usd_bhd: 0.38,
             // World Currencies
             usd_krw: 1320, usd_brl: 5.1, usd_mxn: 17.8, usd_rub: 92, usd_try: 29.5, usd_zar: 18.7, usd_nok: 10.8, usd_sek: 10.9,
             // Big Mac
@@ -75,7 +77,6 @@ class UniversalAPI {
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
         try {
-            await this.rateLimitDelay();
             const response = await fetch(url, {
                 signal: controller.signal,
                 headers: { 
@@ -149,7 +150,8 @@ class UniversalAPI {
     async fetchForexPrice(asset) {
         const symbols = {
             usd_eur: 'EURUSD=X', usd_gbp: 'GBPUSD=X', usd_jpy: 'USDJPY=X', usd_cad: 'USDCAD=X',
-            usd_aud: 'AUDUSD=X', usd_chf: 'USDCHF=X', usd_cny: 'USDCNY=X', usd_inr: 'USDINR=X'
+            usd_aud: 'AUDUSD=X', usd_chf: 'USDCHF=X', usd_cny: 'USDCNY=X', usd_inr: 'USDINR=X',
+            usd_zar: 'USDZAR=X', usd_aed: 'USDAED=X', usd_bhd: 'USDBHD=X'
         };
         
         const symbol = symbols[asset];
