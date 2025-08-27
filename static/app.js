@@ -631,7 +631,8 @@ class UniversalTracker {
             this.allPrices = await this.api.fetchAllPrices();
             
             if (!this.allPrices || Object.keys(this.allPrices).length === 0) {
-                throw new Error('No prices received');
+                console.warn('API failed, using cached prices');
+                this.allPrices = this.api.lastPrices || this.api.fallbackPrices;
             }
             
             this.previousPrice = this.currentPrice;
@@ -657,12 +658,18 @@ class UniversalTracker {
             console.error('Error fetching prices:', error);
             this.performanceMetrics.failedUpdates++;
             
+            // Use cached prices as fallback
+            this.allPrices = this.api.lastPrices || this.api.fallbackPrices;
+            this.currentPrice = this.allPrices[this.currentAsset] || 0;
+            this.updateDisplay();
+            this.updateAssetsOverview();
+            
             const loadingText = document.getElementById('loadingText');
             if (loadingText) {
                 loadingText.style.display = 'none';
             }
             
-            this.showErrorNotification('Failed to update prices. Using cached data.');
+            this.showErrorNotification('Using cached prices - API temporarily unavailable');
         }
     }
 
@@ -900,13 +907,17 @@ class UniversalTracker {
     }
 
     loadAssetHistory(asset) {
-        this.priceHistory = this.storage.loadHistory(asset);
+        this.priceHistory = this.storage.loadHistory(asset) || [];
         this.displayHistory();
     }
 
     displayHistory() {
         const historyList = document.getElementById('historyList');
         if (!historyList) return;
+        
+        if (!Array.isArray(this.priceHistory)) {
+            this.priceHistory = [];
+        }
         
         if (this.priceHistory.length === 0) {
             historyList.innerHTML = '<p>No price history available yet. Data will appear after the first price update.</p>';

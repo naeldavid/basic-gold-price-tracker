@@ -98,149 +98,78 @@ class UniversalAPI {
 
     async rateLimitDelay() {
         if (this.apiCallCount > 0 && this.apiCallCount % 5 === 0) {
-            await new Promise(resolve => setTimeout(resolve, this.rateLimitDelay));
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
     }
 
     async fetchCryptoPrice(asset = 'btc') {
-        const cryptoIds = { 
-            btc: 'bitcoin', eth: 'ethereum', bnb: 'binancecoin', ada: 'cardano', 
-            sol: 'solana', xrp: 'ripple', dot: 'polkadot', doge: 'dogecoin', 
-            avax: 'avalanche-2', matic: 'matic-network'
+        const symbols = { 
+            btc: 'BTC-USD', eth: 'ETH-USD', bnb: 'BNB-USD', ada: 'ADA-USD', 
+            sol: 'SOL-USD', xrp: 'XRP-USD', dot: 'DOT-USD', doge: 'DOGE-USD', 
+            avax: 'AVAX-USD', matic: 'MATIC-USD'
         };
-        const cryptoId = cryptoIds[asset];
+        const symbol = symbols[asset];
         
-        if (!cryptoId) return this.fallbackPrices[asset];
+        if (!symbol) throw new Error(`Unsupported crypto: ${asset}`);
         
-        const apis = [
-            `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=usd`,
-            `https://api.coinbase.com/v2/exchange-rates?currency=${asset.toUpperCase()}`
-        ];
+        const apiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
         
-        for (let i = 0; i < this.maxRetries; i++) {
-            for (const apiUrl of apis) {
-                try {
-                    const data = await this.fetchWithTimeout(apiUrl);
-                    let price;
-                    
-                    if (apiUrl.includes('coingecko') && data[cryptoId]?.usd) {
-                        price = data[cryptoId].usd;
-                    } else if (apiUrl.includes('coinbase') && data.data?.rates?.USD) {
-                        price = parseFloat(data.data.rates.USD);
-                    }
-                    
-                    if (price && price > 0.001) {
-                        this.lastPrices[asset] = price;
-                        this.saveLastPrices();
-                        console.log(`Real ${asset.toUpperCase()} price: $${price}`);
-                        return price;
-                    }
-                } catch (error) {
-                    console.warn(`${asset.toUpperCase()} API attempt ${i+1} failed:`, error.message);
-                    if (i < this.maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                    }
-                    continue;
-                }
-            }
+        const data = await this.fetchWithTimeout(apiUrl);
+        const price = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+        
+        if (price && price > 0) {
+            console.log(`${asset.toUpperCase()}: $${price}`);
+            return price;
         }
         
-        console.warn(`All ${asset.toUpperCase()} APIs failed, using last known price`);
-        return this.lastPrices[asset] || this.fallbackPrices[asset];
+        throw new Error(`Failed to fetch ${asset} price`);
     }
 
     async fetchMetalPrice(asset) {
-        const metalApis = {
-            gold: ['https://api.metals.live/v1/spot/gold', 'https://api.goldapi.io/api/XAU/USD'],
-            silver: ['https://api.metals.live/v1/spot/silver', 'https://api.goldapi.io/api/XAG/USD'],
-            platinum: ['https://api.metals.live/v1/spot/platinum'],
-            palladium: ['https://api.metals.live/v1/spot/palladium']
+        const symbols = {
+            gold: 'GC=F', silver: 'SI=F', platinum: 'PL=F', palladium: 'PA=F'
         };
         
-        const apiUrls = metalApis[asset];
-        if (!apiUrls) return this.fallbackPrices[asset];
+        const symbol = symbols[asset];
+        if (!symbol) throw new Error(`Unsupported metal: ${asset}`);
         
-        for (let i = 0; i < this.maxRetries; i++) {
-            for (const apiUrl of apiUrls) {
-                try {
-                    const data = await this.fetchWithTimeout(apiUrl);
-                    let price;
-                    
-                    if (apiUrl.includes('metals.live') && data.price) {
-                        price = data.price;
-                    } else if (apiUrl.includes('goldapi.io') && data.price) {
-                        price = data.price;
-                    }
-                    
-                    if (price && price > 0) {
-                        this.lastPrices[asset] = price;
-                        this.saveLastPrices();
-                        console.log(`Real ${asset} price: $${price}`);
-                        return price;
-                    }
-                } catch (error) {
-                    console.warn(`${asset} API attempt ${i+1} failed:`, error.message);
-                    if (i < this.maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                    }
-                    continue;
-                }
-            }
+        const apiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+        
+        const data = await this.fetchWithTimeout(apiUrl);
+        const price = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+        
+        if (price && price > 0) {
+            console.log(`${asset}: $${price}`);
+            return price;
         }
         
-        console.warn(`Using last known ${asset} price`);
-        return this.lastPrices[asset] || this.fallbackPrices[asset];
+        throw new Error(`Failed to fetch ${asset} price`);
     }
 
     async fetchForexPrice(asset) {
-        const currencyMap = {
-            usd_eur: 'EUR', usd_gbp: 'GBP', usd_jpy: 'JPY', usd_cad: 'CAD',
-            usd_aud: 'AUD', usd_chf: 'CHF', usd_cny: 'CNY', usd_inr: 'INR',
-            usd_krw: 'KRW', usd_brl: 'BRL', usd_mxn: 'MXN', usd_rub: 'RUB',
-            usd_try: 'TRY', usd_zar: 'ZAR', usd_nok: 'NOK', usd_sek: 'SEK'
+        const symbols = {
+            usd_eur: 'EURUSD=X', usd_gbp: 'GBPUSD=X', usd_jpy: 'USDJPY=X', usd_cad: 'USDCAD=X',
+            usd_aud: 'AUDUSD=X', usd_chf: 'USDCHF=X', usd_cny: 'USDCNY=X', usd_inr: 'USDINR=X'
         };
         
-        const currency = currencyMap[asset];
-        if (!currency) return this.fallbackPrices[asset];
+        const symbol = symbols[asset];
+        if (!symbol) throw new Error(`Unsupported forex: ${asset}`);
         
-        const forexApis = [
-            'https://api.exchangerate-api.com/v4/latest/USD',
-            `https://api.fixer.io/latest?access_key=demo&base=USD&symbols=${currency}`,
-            `https://api.currencylayer.com/live?access_key=demo&currencies=${currency}`
-        ];
+        const apiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
         
-        for (let i = 0; i < this.maxRetries; i++) {
-            for (const apiUrl of forexApis) {
-                try {
-                    const data = await this.fetchWithTimeout(apiUrl);
-                    let rate;
-                    
-                    if (apiUrl.includes('exchangerate-api') && data.rates?.[currency]) {
-                        rate = data.rates[currency];
-                    } else if (apiUrl.includes('fixer.io') && data.rates?.[currency]) {
-                        rate = data.rates[currency];
-                    } else if (apiUrl.includes('currencylayer') && data.quotes?.[`USD${currency}`]) {
-                        rate = data.quotes[`USD${currency}`];
-                    }
-                    
-                    if (rate && rate > 0) {
-                        this.lastPrices[asset] = rate;
-                        this.saveLastPrices();
-                        console.log(`Real ${asset} rate: ${rate}`);
-                        return rate;
-                    }
-                } catch (error) {
-                    console.warn(`${asset} forex API attempt ${i+1} failed:`, error.message);
-                    if (i < this.maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                    }
-                    continue;
-                }
-            }
+        const data = await this.fetchWithTimeout(apiUrl);
+        let rate = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+        
+        if (asset.includes('eur') || asset.includes('gbp') || asset.includes('aud')) {
+            rate = 1 / rate;
         }
         
-        console.warn(`Using last known ${asset} rate`);
-        return this.lastPrices[asset] || this.fallbackPrices[asset];
+        if (rate && rate > 0) {
+            console.log(`${asset}: ${rate}`);
+            return rate;
+        }
+        
+        throw new Error(`Failed to fetch ${asset} rate`);
     }
 
     getBigMacPrice(asset) {
@@ -283,26 +212,15 @@ class UniversalAPI {
 
     async fetchAllPrices() {
         const prices = {};
-        const batchSize = 3;
         const assets = this.userSelectedAssets;
         
-        for (let i = 0; i < assets.length; i += batchSize) {
-            const batch = assets.slice(i, i + batchSize);
-            const batchPromises = batch.map(async asset => {
-                try {
-                    prices[asset] = await this.fetchPrice(asset);
-                    console.log(`Fetched ${asset}: ${prices[asset]}`);
-                } catch (error) {
-                    console.error(`Failed to fetch ${asset}:`, error);
-                    prices[asset] = this.lastPrices[asset] || this.fallbackPrices[asset] || 0;
-                }
-            });
-            
-            await Promise.all(batchPromises);
-            
-            // Small delay between batches
-            if (i + batchSize < assets.length) {
-                await new Promise(resolve => setTimeout(resolve, 500));
+        for (const asset of assets) {
+            try {
+                prices[asset] = await this.fetchPrice(asset);
+                console.log(`Fetched ${asset}: ${prices[asset]}`);
+            } catch (error) {
+                console.error(`Failed to fetch ${asset}:`, error);
+                throw error;
             }
         }
         
