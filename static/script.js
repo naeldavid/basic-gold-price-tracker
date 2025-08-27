@@ -32,13 +32,10 @@ class UniversalTracker {
         this.setupUI();
         this.setupKeyboardShortcuts();
         
-        // Load news immediately
-        setTimeout(() => this.loadNews(), 200);
-        
-        // Fetch prices after UI setup
         setTimeout(() => {
             this.fetchAllPrices();
             this.startAutoRefresh();
+            this.loadNews();
         }, 100);
         
         if (this.razanMode) {
@@ -47,7 +44,7 @@ class UniversalTracker {
                 if (razanMode) {
                     razanMode.style.display = 'block';
                     this.initChart();
-                    setTimeout(() => this.updateAdvancedAnalytics(), 100);
+                    setTimeout(() => this.updateAdvancedAnalytics(), 200);
                 }
             }, 500);
         }
@@ -80,7 +77,6 @@ class UniversalTracker {
             assetTabs.appendChild(tab);
         });
 
-        // Auto-select first asset if current asset not in category
         if (!assets.includes(this.currentAsset)) {
             this.switchAsset(assets[0]);
         }
@@ -105,7 +101,6 @@ class UniversalTracker {
             document.getElementById('loadingText').style.display = 'block';
             this.allPrices = await this.api.fetchAllPrices();
             
-            // Ensure we have valid prices
             if (!this.allPrices || Object.keys(this.allPrices).length === 0) {
                 throw new Error('No prices received');
             }
@@ -126,7 +121,6 @@ class UniversalTracker {
         } catch (error) {
             console.error('Error fetching prices:', error);
             document.getElementById('loadingText').style.display = 'none';
-            this.showAlert('✅ Using cached/simulated prices');
         }
     }
 
@@ -152,7 +146,6 @@ class UniversalTracker {
             const card = document.createElement('div');
             card.className = `asset-card ${asset === this.currentAsset ? 'selected' : ''}`;
             card.onclick = () => {
-                // Switch category if needed
                 if (assetInfo.type !== this.currentCategory) {
                     this.currentCategory = assetInfo.type;
                     document.querySelectorAll('.category-tab').forEach(tab => {
@@ -167,7 +160,6 @@ class UniversalTracker {
                 const assetInfo = this.api.getAssetInfo(asset);
                 const baseCurrency = this.api.getBaseCurrency();
                 
-                // Big Mac Index uses local currency
                 if (assetInfo.type === 'bigmac') {
                     if (asset.includes('jp')) return `¥${price.toFixed(0)}`;
                     if (asset.includes('eu')) return `€${price.toFixed(2)}`;
@@ -175,39 +167,12 @@ class UniversalTracker {
                     return `$${price.toFixed(2)}`;
                 }
                 
-                // Other assets use base currency
                 switch (baseCurrency) {
                     case 'EUR': return `€${price.toFixed(2)}`;
                     case 'GBP': return `£${price.toFixed(2)}`;
                     case 'JPY': return `¥${price.toFixed(0)}`;
                     case 'CAD': return `C$${price.toFixed(2)}`;
                     case 'AUD': return `A$${price.toFixed(2)}`;
-                    case 'CHF': return `Fr${price.toFixed(2)}`;
-                    case 'CNY': return `¥${price.toFixed(2)}`;
-                    case 'INR': return `₹${price.toFixed(2)}`;
-                    case 'KRW': return `₩${price.toFixed(0)}`;
-                    case 'MXN': return `$${price.toFixed(2)}`;
-                    case 'BRL': return `R$${price.toFixed(2)}`;
-                    case 'RUB': return `₽${price.toFixed(2)}`;
-                    case 'SGD': return `S$${price.toFixed(2)}`;
-                    case 'NZD': return `NZ$${price.toFixed(2)}`;
-                    case 'NOK': return `${price.toFixed(2)}kr`;
-                    case 'SEK': return `${price.toFixed(2)}kr`;
-                    case 'DKK': return `${price.toFixed(2)}kr`;
-                    case 'PLN': return `${price.toFixed(2)}zł`;
-                    case 'CZK': return `${price.toFixed(2)}Kč`;
-                    case 'HUF': return `${price.toFixed(0)}Ft`;
-                    case 'TRY': return `₺${price.toFixed(2)}`;
-                    case 'ZAR': return `R${price.toFixed(2)}`;
-                    case 'THB': return `฿${price.toFixed(2)}`;
-                    case 'PHP': return `₱${price.toFixed(2)}`;
-                    case 'IDR': return `Rp${price.toFixed(0)}`;
-                    case 'MYR': return `RM${price.toFixed(2)}`;
-                    case 'VND': return `₫${price.toFixed(0)}`;
-                    case 'AED': return `د.إ${price.toFixed(2)}`;
-                    case 'SAR': return `﷼${price.toFixed(2)}`;
-                    case 'ILS': return `₪${price.toFixed(2)}`;
-                    case 'EGP': return `£${price.toFixed(2)}`;
                     default: return `$${price.toLocaleString()}`;
                 }
             };
@@ -228,158 +193,17 @@ class UniversalTracker {
 
     calculateChange(asset) {
         const history = this.storage.loadHistory(asset);
-        if (history.length < 2) return 0;
-        const current = this.allPrices[asset];
-        const previous = history[1]?.price || current;
-        return ((current - previous) / previous) * 100;
-    }
-
-    updatePriceTicker() {
-        const ticker = document.getElementById('priceTicker');
-        const assetInfo = this.api.getAssetInfo(this.currentAsset);
-        const change = this.calculateChange(this.currentAsset);
-        
-        ticker.innerHTML = `
-            <span class="live-indicator"></span>
-            LIVE: ${assetInfo.name} $${this.currentPrice.toFixed(2)} 
-            <span class="${change >= 0 ? 'positive' : 'negative'}">
-                ${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%
-            </span>
-        `;
-    }
-
-    setupUI() {
-        // Base currency selector
-        const baseCurrencySelect = document.getElementById('baseCurrencySelect');
-        baseCurrencySelect.value = this.api.getBaseCurrency();
-        
-        // Theme selector
-        const themeSelect = document.getElementById('themeSelect');
-        this.themes.getAvailableThemes().forEach(theme => {
-            const option = document.createElement('option');
-            option.value = theme;
-            option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
-            if (theme === this.themes.getCurrentTheme()) option.selected = true;
-            themeSelect.appendChild(option);
-        });
-
-        // Settings
-        document.getElementById('soundEnabled').checked = this.settings.soundEnabled;
-        document.getElementById('soundEnabled').onchange = (e) => {
-            this.settings.soundEnabled = e.target.checked;
-            this.alerts.soundEnabled = e.target.checked;
-            this.storage.saveSettings(this.settings);
-        };
-
-        document.getElementById('refreshInterval').value = this.settings.refreshInterval;
-
-        // Real-time updates
-        document.getElementById('realTimeUpdates').onchange = (e) => {
-            this.realTimeMode = e.target.checked;
-            if (this.realTimeMode) {
-                this.startRealTimeUpdates();
-            } else {
-                this.stopRealTimeUpdates();
-            }
-        };
-
-        this.setupAssetSelection();
-        this.setupPortfolioSelection();
-        this.updateAlertsList();
-        this.updatePortfolioCalculator();
-    }
-
-    setupPortfolioSelection() {
-        const portfolioSelection = document.getElementById('portfolioSelection');
-        const selectedAssets = JSON.parse(localStorage.getItem('userPortfolio')) || ['btc', 'gold'];
-        
-        portfolioSelection.innerHTML = '';
-        
-        // Group assets by type
-        const types = ['crypto', 'metal', 'currency', 'bigmac'];
-        types.forEach(type => {
-            const typeAssets = this.api.getAssetsByType(type);
-            
-            const typeHeader = document.createElement('div');
-            typeHeader.style.fontWeight = 'bold';
-            typeHeader.style.marginTop = '10px';
-            typeHeader.style.marginBottom = '5px';
-            typeHeader.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            portfolioSelection.appendChild(typeHeader);
-            
-            typeAssets.forEach(asset => {
-                const assetInfo = this.api.getAssetInfo(asset);
-                const label = document.createElement('label');
-                label.style.display = 'block';
-                label.style.marginBottom = '3px';
-                label.innerHTML = `
-                    <input type="checkbox" value="${asset}" ${selectedAssets.includes(asset) ? 'checked' : ''}>
-                    ${assetInfo.emoji} ${assetInfo.name}
-                `;
-                portfolioSelection.appendChild(label);
-            });
-        });
-        
-        this.updatePortfolioCalculatorAssets(selectedAssets);
-    }
-    
-    updatePortfolioCalculatorAssets(selectedAssets) {
-        const portfolioSelect = document.getElementById('portfolioAsset');
-        portfolioSelect.innerHTML = '';
-        
-        selectedAssets.forEach(asset => {
-            const assetInfo = this.api.getAssetInfo(asset);
-            const option = document.createElement('option');
-            option.value = asset;
-            option.textContent = `${assetInfo.emoji} ${assetInfo.name}`;
-            portfolioSelect.appendChild(option);
-        });
-    }
-
-    setupAssetSelection() {
-        const assetSelection = document.getElementById('assetSelection');
-        const selectedAssets = this.api.getUserSelectedAssets();
-        
-        assetSelection.innerHTML = '';
-        
-        // Group assets by type
-        const types = ['crypto', 'metal', 'currency', 'bigmac'];
-        types.forEach(type => {
-            const typeAssets = this.api.getAssetsByType(type);
-            
-            const typeHeader = document.createElement('div');
-            typeHeader.style.fontWeight = 'bold';
-            typeHeader.style.marginTop = '10px';
-            typeHeader.style.marginBottom = '5px';
-            typeHeader.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            assetSelection.appendChild(typeHeader);
-            
-            typeAssets.forEach(asset => {
-                const assetInfo = this.api.getAssetInfo(asset);
-                const label = document.createElement('label');
-                label.style.display = 'block';
-                label.style.marginBottom = '3px';
-                label.innerHTML = `
-                    <input type="checkbox" value="${asset}" ${selectedAssets.includes(asset) ? 'checked' : ''}>
-                    ${assetInfo.emoji} ${assetInfo.name}
-                `;
-                assetSelection.appendChild(label);
-            });
-        });
-    }
-
-    startRealTimeUpdates() {
-        if (this.realTimeInterval) clearInterval(this.realTimeInterval);
-        this.realTimeInterval = setInterval(() => {
-            this.fetchAllPrices();
-        }, 10000);
-    }
-
-    stopRealTimeUpdates() {
-        if (this.realTimeInterval) {
-            clearInterval(this.realTimeInterval);
-            this.realTimeInterval = null;
+        if (history.length < 2) {
+            // Use fallback calculation if no history
+            const current = this.allPrices[asset] || 0;
+            const fallback = this.api.fallbackPrices[asset] || current;
+            if (fallback === 0) return 0;
+            return ((current - fallback) / fallback) * 100;
         }
+        const current = this.allPrices[asset];
+        const previous = history[1]?.price || history[0]?.price || current;
+        if (previous === 0) return 0;
+        return ((current - previous) / previous) * 100;
     }
 
     updateDisplay() {
@@ -387,20 +211,17 @@ class UniversalTracker {
         const changeElement = document.getElementById('priceChange');
         const trendElement = document.getElementById('trendIndicator');
         
-        // Ensure currentPrice is a valid number
         if (!this.currentPrice || isNaN(this.currentPrice) || this.currentPrice <= 0) {
             priceElement.textContent = 'Loading price...';
             return;
         }
         
-        // Format price based on asset type and base currency
         const formatPrice = (price) => {
             if (!price || isNaN(price)) return 'N/A';
             
             const baseCurrency = this.api.getBaseCurrency();
             const assetInfo = this.api.getAssetInfo(this.currentAsset);
             
-            // Use asset's native currency for Big Mac Index
             if (assetInfo.type === 'bigmac') {
                 if (this.currentAsset.includes('jp')) return `¥${price.toFixed(0)}`;
                 if (this.currentAsset.includes('eu')) return `€${price.toFixed(2)}`;
@@ -408,39 +229,12 @@ class UniversalTracker {
                 return `$${price.toFixed(2)}`;
             }
             
-            // Format based on base currency
             switch (baseCurrency) {
                 case 'EUR': return `€${price.toFixed(2)}`;
                 case 'GBP': return `£${price.toFixed(2)}`;
                 case 'JPY': return `¥${price.toFixed(0)}`;
                 case 'CAD': return `C$${price.toFixed(2)}`;
                 case 'AUD': return `A$${price.toFixed(2)}`;
-                case 'CHF': return `Fr${price.toFixed(2)}`;
-                case 'CNY': return `¥${price.toFixed(2)}`;
-                case 'INR': return `₹${price.toFixed(2)}`;
-                case 'KRW': return `₩${price.toFixed(0)}`;
-                case 'MXN': return `$${price.toFixed(2)}`;
-                case 'BRL': return `R$${price.toFixed(2)}`;
-                case 'RUB': return `₽${price.toFixed(2)}`;
-                case 'SGD': return `S$${price.toFixed(2)}`;
-                case 'NZD': return `NZ$${price.toFixed(2)}`;
-                case 'NOK': return `${price.toFixed(2)}kr`;
-                case 'SEK': return `${price.toFixed(2)}kr`;
-                case 'DKK': return `${price.toFixed(2)}kr`;
-                case 'PLN': return `${price.toFixed(2)}zł`;
-                case 'CZK': return `${price.toFixed(2)}Kč`;
-                case 'HUF': return `${price.toFixed(0)}Ft`;
-                case 'TRY': return `₺${price.toFixed(2)}`;
-                case 'ZAR': return `R${price.toFixed(2)}`;
-                case 'THB': return `฿${price.toFixed(2)}`;
-                case 'PHP': return `₱${price.toFixed(2)}`;
-                case 'IDR': return `Rp${price.toFixed(0)}`;
-                case 'MYR': return `RM${price.toFixed(2)}`;
-                case 'VND': return `₫${price.toFixed(0)}`;
-                case 'AED': return `د.إ${price.toFixed(2)}`;
-                case 'SAR': return `﷼${price.toFixed(2)}`;
-                case 'ILS': return `₪${price.toFixed(2)}`;
-                case 'EGP': return `£${price.toFixed(2)}`;
                 default: return `$${price.toLocaleString()}`;
             }
         };
@@ -457,7 +251,6 @@ class UniversalTracker {
             }
         }
 
-        // Update trend indicator
         if (this.priceHistory.length > 0) {
             const prices = this.priceHistory.slice(0, 10).map(h => h.price);
             const trend = this.analytics.calculateTrend(prices);
@@ -622,7 +415,6 @@ class UniversalTracker {
         
         if (!this.chart || !this.chart.container) return;
 
-        // Get historical data for all 4 assets
         const assets = ['btc', 'gold', 'silver', 'usd_eur'];
         const allHistories = {};
         
@@ -640,27 +432,28 @@ class UniversalTracker {
             console.error('Chart update failed:', error);
         }
 
-        // Update stats
         const allPrices = this.priceHistory.map(h => h.price);
-        const high = Math.max(...allPrices.slice(0, 24));
-        const low = Math.min(...allPrices.slice(0, 24));
-        const volatility = this.analytics.calculateVolatility(allPrices.slice(0, 24));
-        const ma7 = this.analytics.calculateMovingAverage(allPrices, 7);
-        const ma30 = this.analytics.calculateMovingAverage(allPrices, 30);
-        const sentiment = this.analytics.getMarketSentiment(this.priceHistory);
-        const support = this.analytics.calculateSupport(allPrices);
-        const resistance = this.analytics.calculateResistance(allPrices);
-        const rsi = this.calculateRSI(allPrices.slice(0, 14));
+        if (allPrices.length > 0) {
+            const high = Math.max(...allPrices.slice(0, 24));
+            const low = Math.min(...allPrices.slice(0, 24));
+            const volatility = this.analytics.calculateVolatility(allPrices.slice(0, 24));
+            const ma7 = this.analytics.calculateMovingAverage(allPrices, 7);
+            const ma30 = this.analytics.calculateMovingAverage(allPrices, 30);
+            const sentiment = this.analytics.getMarketSentiment(this.priceHistory);
+            const support = this.analytics.calculateSupport(allPrices);
+            const resistance = this.analytics.calculateResistance(allPrices);
+            const rsi = this.calculateRSI(allPrices.slice(0, 14));
 
-        document.getElementById('dayHigh').textContent = `$${high.toFixed(2)}`;
-        document.getElementById('dayLow').textContent = `$${low.toFixed(2)}`;
-        document.getElementById('volatility').textContent = `${volatility.toFixed(2)}%`;
-        document.getElementById('ma7').textContent = ma7 ? `$${ma7.toFixed(2)}` : 'N/A';
-        document.getElementById('ma30').textContent = ma30 ? `$${ma30.toFixed(2)}` : 'N/A';
-        document.getElementById('sentiment').textContent = `${sentiment.sentiment} (${sentiment.confidence}%)`;
-        document.getElementById('support').textContent = `$${support.toFixed(2)}`;
-        document.getElementById('resistance').textContent = `$${resistance.toFixed(2)}`;
-        document.getElementById('rsi').textContent = rsi.toFixed(1);
+            document.getElementById('dayHigh').textContent = `$${high.toFixed(2)}`;
+            document.getElementById('dayLow').textContent = `$${low.toFixed(2)}`;
+            document.getElementById('volatility').textContent = `${volatility.toFixed(2)}%`;
+            document.getElementById('ma7').textContent = ma7 ? `$${ma7.toFixed(2)}` : 'N/A';
+            document.getElementById('ma30').textContent = ma30 ? `$${ma30.toFixed(2)}` : 'N/A';
+            document.getElementById('sentiment').textContent = `${sentiment.sentiment} (${sentiment.confidence}%)`;
+            document.getElementById('support').textContent = `$${support.toFixed(2)}`;
+            document.getElementById('resistance').textContent = `$${resistance.toFixed(2)}`;
+            document.getElementById('rsi').textContent = rsi.toFixed(1);
+        }
     }
 
     calculateRSI(prices, period = 14) {
@@ -679,6 +472,148 @@ class UniversalTracker {
         return 100 - (100 / (1 + rs));
     }
 
+    setupUI() {
+        const baseCurrencySelect = document.getElementById('baseCurrencySelect');
+        baseCurrencySelect.value = this.api.getBaseCurrency();
+        
+        const themeSelect = document.getElementById('themeSelect');
+        this.themes.getAvailableThemes().forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme;
+            option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            if (theme === this.themes.getCurrentTheme()) option.selected = true;
+            themeSelect.appendChild(option);
+        });
+
+        document.getElementById('soundEnabled').checked = this.settings.soundEnabled;
+        document.getElementById('soundEnabled').onchange = (e) => {
+            this.settings.soundEnabled = e.target.checked;
+            this.alerts.soundEnabled = e.target.checked;
+            this.storage.saveSettings(this.settings);
+        };
+
+        document.getElementById('refreshInterval').value = this.settings.refreshInterval;
+
+        document.getElementById('realTimeUpdates').onchange = (e) => {
+            this.realTimeMode = e.target.checked;
+            if (this.realTimeMode) {
+                this.startRealTimeUpdates();
+            } else {
+                this.stopRealTimeUpdates();
+            }
+        };
+
+        this.setupAssetSelection();
+        this.setupPortfolioSelection();
+        this.updateAlertsList();
+        this.updatePortfolioCalculator();
+    }
+
+    setupPortfolioSelection() {
+        const portfolioSelection = document.getElementById('portfolioSelection');
+        const selectedAssets = JSON.parse(localStorage.getItem('userPortfolio')) || ['btc', 'gold'];
+        
+        portfolioSelection.innerHTML = '';
+        
+        const types = ['crypto', 'metal', 'currency', 'bigmac'];
+        types.forEach(type => {
+            const typeAssets = this.api.getAssetsByType(type);
+            
+            const typeHeader = document.createElement('div');
+            typeHeader.style.fontWeight = 'bold';
+            typeHeader.style.marginTop = '10px';
+            typeHeader.style.marginBottom = '5px';
+            typeHeader.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            portfolioSelection.appendChild(typeHeader);
+            
+            typeAssets.forEach(asset => {
+                const assetInfo = this.api.getAssetInfo(asset);
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                label.style.marginBottom = '3px';
+                label.innerHTML = `
+                    <input type="checkbox" value="${asset}" ${selectedAssets.includes(asset) ? 'checked' : ''}>
+                    ${assetInfo.emoji} ${assetInfo.name}
+                `;
+                portfolioSelection.appendChild(label);
+            });
+        });
+        
+        this.updatePortfolioCalculatorAssets(selectedAssets);
+    }
+    
+    updatePortfolioCalculatorAssets(selectedAssets) {
+        const portfolioSelect = document.getElementById('portfolioAsset');
+        portfolioSelect.innerHTML = '';
+        
+        selectedAssets.forEach(asset => {
+            const assetInfo = this.api.getAssetInfo(asset);
+            const option = document.createElement('option');
+            option.value = asset;
+            option.textContent = `${assetInfo.emoji} ${assetInfo.name}`;
+            portfolioSelect.appendChild(option);
+        });
+    }
+
+    setupAssetSelection() {
+        const assetSelection = document.getElementById('assetSelection');
+        const selectedAssets = this.api.getUserSelectedAssets();
+        
+        assetSelection.innerHTML = '';
+        
+        const types = ['crypto', 'metal', 'currency', 'bigmac'];
+        types.forEach(type => {
+            const typeAssets = this.api.getAssetsByType(type);
+            
+            const typeHeader = document.createElement('div');
+            typeHeader.style.fontWeight = 'bold';
+            typeHeader.style.marginTop = '10px';
+            typeHeader.style.marginBottom = '5px';
+            typeHeader.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            assetSelection.appendChild(typeHeader);
+            
+            typeAssets.forEach(asset => {
+                const assetInfo = this.api.getAssetInfo(asset);
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                label.style.marginBottom = '3px';
+                label.innerHTML = `
+                    <input type="checkbox" value="${asset}" ${selectedAssets.includes(asset) ? 'checked' : ''}>
+                    ${assetInfo.emoji} ${assetInfo.name}
+                `;
+                assetSelection.appendChild(label);
+            });
+        });
+    }
+
+    startRealTimeUpdates() {
+        if (this.realTimeInterval) clearInterval(this.realTimeInterval);
+        this.realTimeInterval = setInterval(() => {
+            this.fetchAllPrices();
+        }, 10000);
+    }
+
+    stopRealTimeUpdates() {
+        if (this.realTimeInterval) {
+            clearInterval(this.realTimeInterval);
+            this.realTimeInterval = null;
+        }
+    }
+
+    updatePriceTicker() {
+        const ticker = document.getElementById('priceTicker');
+        const assetInfo = this.api.getAssetInfo(this.currentAsset);
+        const change = this.calculateChange(this.currentAsset);
+        
+        ticker.innerHTML = `
+            <span class="live-indicator"></span>
+            LIVE: ${assetInfo.name} $${this.currentPrice.toFixed(2)} 
+            <span class="${change >= 0 ? 'positive' : 'negative'}">
+                ${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}%
+            </span>
+        `;
+    }
+
     updateAlertsList() {
         const alertsList = document.getElementById('alertsList');
         const alerts = this.alerts.getAlertsList();
@@ -686,7 +621,7 @@ class UniversalTracker {
         alertsList.innerHTML = alerts.map(alert => `
             <div class="alert-item">
                 <span>${alert.description}</span>
-                <button onclick="removeAlert(${alert.id})" style="background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 3px;">Remove</button>
+                <button onclick="removeAlert(${alert.id})" style="background: var(--danger); color: white; border: none; padding: 5px 10px;">Remove</button>
             </div>
         `).join('');
     }
@@ -758,7 +693,6 @@ class UniversalTracker {
     }
 }
 
-// Global functions
 function refreshPrice() {
     universalTracker.fetchAllPrices();
 }
@@ -810,16 +744,16 @@ function toggleTheme() {
     universalTracker.themes.toggleTheme();
 }
 
-function changeTheme() {
-    const theme = document.getElementById('themeSelect').value;
-    universalTracker.themes.setTheme(theme);
-}
-
 function changeBaseCurrency() {
     const currency = document.getElementById('baseCurrencySelect').value;
     universalTracker.api.setBaseCurrency(currency);
     universalTracker.updateDisplay();
     universalTracker.updateAssetsOverview();
+}
+
+function changeTheme() {
+    const theme = document.getElementById('themeSelect').value;
+    universalTracker.themes.setTheme(theme);
 }
 
 function changeRefreshInterval() {
@@ -899,7 +833,6 @@ function savePortfolioSelection() {
     universalTracker.showAlert('✅ Portfolio selection saved!');
 }
 
-// Initialize the app
 let universalTracker;
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -909,7 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
             Notification.requestPermission();
         }
         
-        // Portfolio calculator real-time updates
         ['buyPrice', 'amount', 'portfolioAsset'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
